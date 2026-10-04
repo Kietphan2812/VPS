@@ -1,0 +1,14 @@
+[
+  {
+    "id": "task-sample-1",
+    "name": "Auto Bot Farm Vàng (Demo)",
+    "category": "Bot / Tool",
+    "command": "ping 127.0.0.1 -n 3600",
+    "cwd": "C:\\Users\\DELL\\Downloads\\VPS",
+    "autoRestart": true,
+    "status": "stopped",
+    "pid": null,
+    "restarts": 0,
+    "note": "Bot tự chạy lại sau mỗi chu kỳ hoặc khi bị văng."
+  }
+]

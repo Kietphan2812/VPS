@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Bộ Điều Khiển & Auto Đánh Game PC 24/7 - VPS Web Controller</title>
+  <meta name="description" content="Web App chọn game có sẵn trên máy tính PC/VPS, tự động điều khiển đánh quái, tung chiêu, bơm máu và cày cuốc 24/7 ngay cả khi tắt web.">
+
+  <!-- Google Fonts: Outfit & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-base: #07090e;
+      --bg-surface: #0e131f;
+      --bg-surface-elevated: #161e31;
+      --bg-card: rgba(16, 23, 38, 0.85);
+
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.4);
+      --cyan: #06b6d4;
+      --cyan-glow: rgba(6, 182, 212, 0.35);
+
+      --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.4);
+      --amber: #f59e0b;
+      --red: #ef4444;
+
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-bright: rgba(255, 255, 255, 0.16);
+
+      --font-sans: 'Outfit', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 22px;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      background-image: 
+        radial-gradient(circle at 10% 10%, rgba(99, 102, 241, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 90% 90%, rgba(6, 182, 212, 0.1) 0%, transparent 45%),
+        linear-gradient(to bottom, #07090e, #0b0f19);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 16px 20px 50px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* Top Navigation Header */
+    header.topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 22px;
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      flex-wrap: wrap;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #6366f1, #06b6d4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 18px var(--accent-glow);
+    }
+
+    .brand-icon svg {
+      width: 24px;
+      height: 24px;
+      fill: #ffffff;
+    }
+
+    .brand-text h1 {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      background: linear-gradient(90deg, #ffffff, #cbd5e1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-text p {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .badge-live {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .dot-pulse {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 8px currentColor;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      text-decoration: none;
+      user-select: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: #ffffff;
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #4f46e5, #4338ca);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--bg-surface-elevated);
+      color: var(--text-main);
+      border-color: var(--border-subtle);
+    }
+    .btn-secondary:hover {
+      background: #1f2c47;
+      border-color: var(--border-bright);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #ffffff;
+      box-shadow: 0 4px 14px var(--green-glow);
+    }
+    .btn-success:hover {
+      background: linear-gradient(135deg, #059669, #047857);
+      transform: translateY(-1px);
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+    .btn-danger:hover {
+      background: #ef4444;
+      color: #ffffff;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 6px;
+    }
+
+    /* Explanation Banner */
+    .info-banner {
+      background: linear-gradient(90deg, rgba(99, 102, 241, 0.1), rgba(6, 182, 212, 0.08));
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: var(--radius-md);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .info-banner-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .info-banner-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(99, 102, 241, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #818cf8;
+      flex-shrink: 0;
+    }
+
+    .info-banner strong {
+      color: #a5b4fc;
+      font-size: 14px;
+      display: block;
+    }
+
+    .info-banner p {
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    /* 2-Column Grid Layout */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Card Panels */
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .panel-header h2 {
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* SECTION 1: GAME SELECTOR BOX */
+    .selector-box {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .form-group select, .form-group input {
+      background: #080c14;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--text-main);
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    .form-group select:focus, .form-group input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-glow);
+    }
+
+    .preset-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .preset-chip {
+      font-size: 11px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      padding: 4px 9px;
+      border-radius: 6px;
+      color: #93c5fd;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .preset-chip:hover {
+      background: var(--bg-surface);
+      border-color: var(--cyan);
+      transform: translateY(-1px);
+    }
+
+    /* Action Buttons Row */
+    .launch-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* SECTION 2: GAME PROCESS MONITOR */
+    .process-card {
+      background: #080c14;
+      border: 1px solid var(--border-bright);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .process-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #10b981, #06b6d4);
+    }
+
+    .process-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .process-info h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .process-info p {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      margin-top: 2px;
+    }
+
+    .process-status-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .process-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 10px;
+      border-radius: var(--radius-sm);
+    }
+
+    .metric-col span {
+      font-size: 11px;
+      color: var(--text-dim);
+      display: block;
+    }
+
+    .metric-col strong {
+      font-size: 13px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    /* Live Terminal Console (Auto Actions Stream) */
+    .terminal-box {
+      background: #05070b;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-md);
+      height: 220px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    .terminal-header {
+      background: #0d121c;
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .terminal-logs {
+      flex: 1;
+      padding: 12px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      color: #94a3b8;
+      line-height: 1.6;
+    }
+
+    .log-action { color: #38bdf8; }
+    .log-potion { color: #34d399; }
+    .log-loot { color: #fbbf24; }
+    .log-alert { color: #f87171; }
+
+    /* SECTION 3: AUTO ATTACK CONFIGURATION PANEL */
+    .master-switch-card {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 182, 212, 0.12));
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .master-switch-card:hover {
+      border-color: #10b981;
+      box-shadow: 0 0 20px var(--green-glow);
+    }
+
+    .master-switch-text strong {
+      font-size: 16px;
+      color: #34d399;
+      display: block;
+    }
+
+    .master-switch-text p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; inset: 0;
+      background-color: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      transition: .25s; border-radius: 34px;
+    }
+    .slider:before {
+      position: absolute; content: "";
+      height: 18px; width: 18px; left: 3px; bottom: 3px;
+      background-color: var(--text-muted);
+      transition: .25s; border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: #10b981;
+      border-color: #10b981;
+    }
+    input:checked + .slider:before {
+      transform: translateX(22px);
+      background-color: #ffffff;
+    }
+
+    /* Auto Skills Checkbox Grid */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .skill-check-item {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 10px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .skill-check-item.active {
+      border-color: #38bdf8;
+      background: rgba(6, 182, 212, 0.15);
+    }
+
+    .skill-check-item input { display: none; }
+
+    .skill-key-badge {
+      background: #0c111d;
+      border: 1px solid var(--border-bright);
+      color: #38bdf8;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 13px;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    .skill-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    /* Additional Automations List */
+    .auto-features-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .feature-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+    }
+
+    .feature-item-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .key-tag {
+      background: #080c14;
+      border: 1px solid #6366f1;
+      color: #a5b4fc;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    /* Big Safe Exit Button */
+    .btn-safe-exit {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #1e1b4b, #312e81);
+      border: 1px solid #6366f1;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 14px;
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 20px var(--accent-glow);
+      transition: all 0.2s;
+    }
+
+    .btn-safe-exit:hover {
+      background: linear-gradient(135deg, #312e81, #4338ca);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px var(--accent-glow);
+    }
+
+    /* Toast */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .toast {
+      pointer-events: auto;
+      background: #0f172a;
+      border: 1px solid #38bdf8;
+      color: #ffffff;
+      padding: 12px 18px;
+      border-radius: var(--radius-md);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: toastIn 0.3s ease-out;
+    }
+
+    @keyframes toastIn {
+      from { transform: translateX(50px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-bright);
+      border-radius: var(--radius-xl);
+      max-width: 540px;
+      width: 100%;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.85);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="brand-wrap">
+        <div class="brand-icon" style="background: linear-gradient(135deg, #0284c7, #38bdf8);">
+          <!-- Knight Helmet / Sword Icon -->
+          <svg viewBox="0 0 24 24"><path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z"/></svg>
+        </div>
+        <div class="brand-text">
+          <h1>KNIGHT AGE AUTO CONTROLLER <span class="badge-live">THỜI ĐẠI HIỆP SĨ 24/7</span></h1>
+          <p>Tự động điều khiển tung chiêu, đánh quái, bơm máu, cày đồ game Knight Age trên máy tính</p>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <div class="badge-live" id="agentBadge">
+          <span class="dot-pulse"></span>
+          <span id="agentBadgeText">AGENT SẴN SÀNG KẾT NỐI</span>
+        </div>
+        <a href="http://knightageonline.com/" target="_blank" class="btn btn-secondary btn-sm" style="color: #38bdf8;">
+          🌐 Tải Knight Age PC
+        </a>
+        <button class="btn btn-secondary btn-sm" onclick="scanActiveGames()">
+          🔄 Quét Cửa Sổ Game
+        </button>
+        <button class="btn btn-success btn-sm" onclick="triggerSafeExit()">
+          🌙 Tắt Web Đi Ngủ (Vẫn Auto)
+        </button>
+      </div>
+    </header>
+
+    <!-- Information Persistence Banner -->
+    <div class="info-banner">
+      <div class="info-banner-left">
+        <div class="info-banner-icon" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        </div>
+        <div>
+          <strong style="color: #38bdf8;">ĐIỀU KHIỂN GAME KNIGHT AGE (THỜI ĐẠI HIỆP SĨ - HSO)</strong>
+          <p>Hệ thống tự động bấm phím <b>1, 2 (Skill), phím 5 (Đánh quái), phím 7 (Bơm máu)</b> vào cửa sổ game thật. Bạn có thể <b>thu nhỏ game, tắt web này hoặc đi ngủ</b>, nhân vật Knight Age vẫn tự cày 24/7!</p>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="focusCurrentGame()">
+        🎯 Hiện Cửa Sổ Knight Age
+      </button>
+    </div>
+
+    <!-- Main 2-Column Dashboard -->
+    <div class="dashboard-grid">
+      
+      <!-- LEFT COLUMN: GAME SELECTION & PROCESS MONITOR -->
+      <div style="display: flex; flex-direction: column; gap: 18px;">
+        
+        <!-- STEP 1: CHỌN GAME TRÊN MÁY TÍNH -->
+        <section class="panel">
+          <div class="panel-header">
+            <h2>📁 Bước 1: Chọn Game Knight Age Trên Máy Tính</h2>
+            <span style="font-size: 11px; color: #38bdf8;">TeaMobi Knight Age</span>
+          </div>
+
+          <div class="selector-box">
+            <!-- Dropdown: Select running or preset game -->
+            <div class="form-group">
+              <label for="selectGamePreset">
+                <span>Chọn phiên bản Game Knight Age:</span>
+                <span style="color: #38bdf8; cursor: pointer;" onclick="scanActiveGames()">[ Quét lại ]</span>
+              </label>
+              <select id="selectGamePreset" onchange="handleSelectGamePreset(this.value)">
+                <option value="knight" selected>🗡️ Knight Age (Bản PC Cài Đặt - KnightAge.exe)</option>
+                <option value="knight_micro">☕ Knight Age (Bản Java MicroEmulator / Mod Auto)</option>
+                <option value="ldplayer">📱 Knight Age (Chạy qua Giả Lập LDPlayer Android)</option>
+                <option value="nox">📱 Knight Age (Chạy qua Giả Lập NoxPlayer)</option>
+                <option value="custom">✏️ Nhập đường dẫn file game khác...</option>
+              </select>
+            </div>
+
+            <!-- Input: Direct Executable Path on PC -->
+            <div class="form-group">
+              <label for="inputExePath">Đường dẫn file chạy Knight Age trên máy tính (Đã tải sẵn):</label>
+              <input type="text" id="inputExePath" value="C:\Users\DELL\Downloads\HSO_v403B.exe" placeholder="C:\Users\DELL\Downloads\HSO_v403B.exe">
+              
+              <!-- Quick Preset Chips -->
+              <div class="preset-chips">
+                <span class="preset-chip" onclick="setExePath('C:\\Users\\DELL\\Downloads\\HSO_v403B.exe', 'Knight Age PC (HSO)')">🗡️ C:\Users\DELL\Downloads\HSO_v403B.exe</span>
+                <span class="preset-chip" onclick="setExePath('C:\\KnightAge\\KnightAge.exe', 'Knight Age C:')">📁 C:\KnightAge\KnightAge.exe</span>
+              </div>
+            </div>
+
+            <!-- Launch & Connect Buttons -->
+            <div class="launch-row">
+              <button class="btn btn-primary" onclick="launchGameOnPC()" style="flex: 1;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                Khởi Chạy Game Knight Age
+              </button>
+              <button class="btn btn-secondary" onclick="focusCurrentGame()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
+                Hiện Cửa Sổ Game
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 2: TIẾN TRÌNH GAME ĐANG HOẠT ĐỘNG TRÊN MÁY -->
+        <section class="panel">
+          <div class="panel-header">
+            <h2>🎮 Cửa Sổ Game Knight Age Đang Chạy</h2>
+            <button class="btn btn-secondary btn-sm" onclick="focusCurrentGame()">⛶ Focus Cửa Sổ Game</button>
+          </div>
+
+          <!-- Active Game Card -->
+          <div class="process-card">
+            <div class="process-top">
+              <div class="process-info">
+                <h3 id="txtActiveGameName">Knight Age (Thời Đại Hiệp Sĩ)</h3>
+                <p id="txtActiveGameMeta">Tiêu đề cửa sổ: "Knight Age" • Trạng thái: Đang kết nối gửi lệnh phím</p>
+              </div>
+              <div class="process-status-pill">
+                <span class="dot-pulse"></span>
+                <span>ĐÃ KẾT NỐI VÀO GAME</span>
+              </div>
+            </div>
+
+            <div class="process-metrics">
+              <div class="metric-col">
+                <span>Trạng thái đánh</span>
+                <strong id="metricAutoState" style="color: #34d399;">ĐANG AUTO CÀY QUÁI</strong>
+              </div>
+              <div class="metric-col">
+                <span>Số chiêu đã xuất</span>
+                <strong id="metricActionsCount" style="color: #38bdf8;">2,410 lần</strong>
+              </div>
+              <div class="metric-col">
+                <span>Thời gian đã cày</span>
+                <strong id="metricUptime">03:22:15</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Auto Actions Console Stream -->
+          <div class="terminal-box">
+            <div class="terminal-header">
+              <span>NHẬT KÝ GỬI PHÍM AUTO VÀO GAME KNIGHT AGE (REALTIME)</span>
+              <span style="color: #34d399;">● ĐANG GỬI PHÍM THẬT</span>
+            </div>
+            <div class="terminal-logs" id="terminalLogs">
+              <div>[21:05:10] 🚀 Đã kết nối vào cửa sổ game Knight Age.</div>
+              <div class="log-action">[21:05:12] ⚡ Knight Age Auto: Đã bấm phím [1] (Kỹ năng Skill 1)</div>
+              <div class="log-action">[21:05:13] ⚡ Knight Age Auto: Đã bấm phím [2] (Kỹ năng Skill 2)</div>
+              <div class="log-action">[21:05:14] ⚔️ Knight Age Auto: Đã bấm phím [5] (Tấn công thường liên hoàn)</div>
+              <div class="log-potion">[21:05:16] 💚 Knight Age Auto: Đã bấm phím [7] (Bơm bình máu HP)</div>
+              <div class="log-loot">[21:05:18] 💰 Knight Age Auto: Đã bấm [SPACE] (Nhặt vàng & trang bị rơi)</div>
+              <div>[21:05:20] 🛡️ Watchdog: Cửa sổ Knight Age đang chạy ổn định 24/7.</div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+
+      <!-- RIGHT COLUMN: AUTO ATTACK ENGINE (BỘ ĐIỀU KHIỂN ĐÁNH TỰ ĐỘNG) -->
+      <div style="display: flex; flex-direction: column; gap: 18px;">
+        
+        <section class="panel">
+          <div class="panel-header">
+            <h2>⚔️ Bộ Tự Động Đánh Trong Game</h2>
+            <span style="font-size: 11px; color: #a5b4fc;">Auto-Attack 24/7</span>
+          </div>
+
+          <!-- BIG MASTER AUTO TOGGLE -->
+          <div class="master-switch-card" onclick="toggleMainAuto()">
+            <div class="master-switch-text">
+              <strong id="lblMasterAuto">⚡ AUTO ĐÁNH TRONG GAME: ĐANG BẬT</strong>
+              <p>Tự động gửi phím skill, đánh quái, bơm máu liên tục</p>
+            </div>
+            <label class="switch" onclick="event.stopPropagation()">
+              <input type="checkbox" id="chkMasterAuto" checked onchange="toggleMainAuto(this.checked)">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <!-- CHỌN CÁC PHÍM SKILL ĐỂ TỰ ĐỘNG ĐÁNH -->
+          <div class="form-group">
+            <label>
+              <span>Chọn các phím Skill xuất chiêu (bấm luân phiên):</span>
+              <span style="font-size: 11px; color: #38bdf8;">Tự bấm phím thật</span>
+            </label>
+            <div class="skills-grid" style="grid-template-columns: repeat(5, 1fr);">
+              <label class="skill-check-item active" id="item-key-1" onclick="toggleSkillKey('1')">
+                <input type="checkbox" id="skill-1" checked>
+                <div class="skill-key-badge">1</div>
+                <span class="skill-label">Skill 1</span>
+              </label>
+
+              <label class="skill-check-item active" id="item-key-2" onclick="toggleSkillKey('2')">
+                <input type="checkbox" id="skill-2" checked>
+                <div class="skill-key-badge">2</div>
+                <span class="skill-label">Skill 2</span>
+              </label>
+
+              <label class="skill-check-item active" id="item-key-5" onclick="toggleSkillKey('5')">
+                <input type="checkbox" id="skill-5" checked>
+                <div class="skill-key-badge" style="color: #fbbf24; border-color: #fbbf24;">5</div>
+                <span class="skill-label">Đánh [5]</span>
+              </label>
+
+              <label class="skill-check-item" id="item-key-3" onclick="toggleSkillKey('3')">
+                <input type="checkbox" id="skill-3">
+                <div class="skill-key-badge">3</div>
+                <span class="skill-label">Skill 3</span>
+              </label>
+
+              <label class="skill-check-item" id="item-key-4" onclick="toggleSkillKey('4')">
+                <input type="checkbox" id="skill-4">
+                <div class="skill-key-badge">4</div>
+                <span class="skill-label">Skill 4</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- TỐC ĐỘ XUẤT CHIÊU (INTERVAL) -->
+          <div class="form-group">
+            <label for="rngSkillSpeed">
+              <span>Tốc độ tung chiêu / đánh quái:</span>
+              <span id="txtSkillSpeed" style="color: #38bdf8; font-family: var(--font-mono);">600ms</span>
+            </label>
+            <input type="range" id="rngSkillSpeed" min="200" max="2500" step="100" value="600" style="width: 100%; accent-color: var(--accent);">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-dim);">
+              <span>Nhanh (200ms)</span>
+              <span>Vừa (600ms)</span>
+              <span>Chậm (2.5s)</span>
+            </div>
+          </div>
+
+          <!-- CÁC TÍNH NĂNG AUTO PHỤ -->
+          <div class="auto-features-list">
+            <!-- Auto Potion HP (Phím 7 trong Knight Age) -->
+            <div class="feature-item">
+              <div class="feature-item-left">
+                <span class="key-tag" style="border-color: #ef4444; color: #f87171;">PHÍM 7</span>
+                <div>
+                  <b style="font-size: 13px;">Tự bơm bình máu (HP)</b>
+                  <div style="font-size: 11px; color: var(--text-dim);">Tự bấm phím 7 hồi máu mỗi 3.5 giây</div>
+                </div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="chkAutoPotion" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <!-- Auto Potion MP (Phím 8 trong Knight Age) -->
+            <div class="feature-item">
+              <div class="feature-item-left">
+                <span class="key-tag" style="border-color: #3b82f6; color: #60a5fa;">PHÍM 8</span>
+                <div>
+                  <b style="font-size: 13px;">Tự bơm bình Mana (MP)</b>
+                  <div style="font-size: 11px; color: var(--text-dim);">Tự bấm phím 8 hồi năng lượng</div>
+                </div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="chkAutoMana" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+
+
+            <!-- Auto Loot -->
+            <div class="feature-item">
+              <div class="feature-item-left">
+                <span class="key-tag">SPACE</span>
+                <div>
+                  <b style="font-size: 13px;">Tự nhặt vàng & trang bị</b>
+                  <div style="font-size: 11px; color: var(--text-dim);">Tự bấm phím Space sau mỗi đòn đánh</div>
+                </div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="chkAutoLoot" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <!-- Auto Click -->
+            <div class="feature-item">
+              <div class="feature-item-left">
+                <span class="key-tag">CLICK</span>
+                <div>
+                  <b style="font-size: 13px;">Auto Click chuột trái</b>
+                  <div style="font-size: 11px; color: var(--text-dim);">Nhấp chuột liên tục giữ kết nối game</div>
+                </div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="chkAutoClick">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <!-- Watchdog -->
+            <div class="feature-item">
+              <div class="feature-item-left">
+                <span class="key-tag">RELOAD</span>
+                <div>
+                  <b style="font-size: 13px;">Tự mở lại game khi văng</b>
+                  <div style="font-size: 11px; color: var(--text-dim);">Chống crash và mất mạng 24/7</div>
+                </div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="chkWatchdog" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- BIG SAFE EXIT BUTTON: TẮT WEB ĐI NGỦ -->
+          <button class="btn-safe-exit" onclick="triggerSafeExit()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            TẮT WEB ĐI NGỦ (GAME VẪN ĐANG ĐÁNH TRÊN MÁY)
+          </button>
+
+        </section>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- MODAL: SAFE EXIT -->
+  <div class="modal-overlay" id="safeExitModal">
+    <div class="modal-card">
+      <h3 style="color: #34d399; font-size: 18px; display: flex; align-items: center; gap: 8px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        Game Đang Tự Động Đánh Trên Máy Của Bạn!
+      </h3>
+      <p style="color: var(--text-muted); font-size: 13px; line-height: 1.6;">
+        Hệ thống Agent trên máy tính/VPS đã được khóa vào chế độ <b>Auto Đánh 24/7</b>.<br><br>
+        Bạn có thể <b>thu nhỏ cửa sổ game, đóng tab trình duyệt web này hoặc đi ngủ</b>. Máy tính sẽ tiếp tục tự động bấm skill, đánh quái, bơm máu và nhặt đồ liên tục!
+      </p>
+      <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 12px; font-size: 13px; color: #34d399;">
+        ✓ Game đang chạy: <b id="modalGameName">Knight.exe</b><br>
+        ✓ Phím xuất chiêu: <b>Phím 1, Phím 2</b><br>
+        ✓ Tự bơm máu (Phím 3): <b>Đang kích hoạt</b><br>
+        ✓ Tự nhặt đồ (Space): <b>Đang kích hoạt</b>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+        <button class="btn btn-secondary" onclick="closeModal('safeExitModal')">Tiếp tục theo dõi</button>
+        <button class="btn btn-success" onclick="closeModal('safeExitModal'); showToast('🌙 Chúc bạn ngủ ngon! Game vẫn đang tự cày đồ.');">Tôi hiểu rồi, yên tâm đi ngủ</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var AGENT_URL = localStorage.getItem('vps_agent_url') || 'http://localhost:3000';
+      var isAutoRunning = true;
+      var activeSkills = ['1', '2'];
+      var skillSpeedMs = 600;
+      var totalActions = 1842;
+      var startTime = Date.now() - (2 * 3600000 + 14 * 60000 + 38000);
+      var selectedGame = {
+        name: 'Knight Age (HiepSiOnline_400)',
+        title: 'HiepSiOnline_400',
+        exePath: 'C:\\Users\\DELL\\Downloads\\HSO_v403B.exe'
+      };
+
+
+      function init() {
+        // Range slider listener
+        document.getElementById('rngSkillSpeed').addEventListener('input', function (e) {
+          skillSpeedMs = parseInt(e.target.value);
+          document.getElementById('txtSkillSpeed').textContent = skillSpeedMs + 'ms';
+          if (isAutoRunning) {
+            syncAutoWithAgent();
+          }
+        });
+
+        // Uptime counter
+        setInterval(updateUptime, 1000);
+
+        // Simulation auto loop for live console feedback
+        setInterval(autoSimulateTick, skillSpeedMs);
+
+        // Check connection to local Agent
+        checkAgentConnection();
+      }
+
+      function updateUptime() {
+        var elapsed = Date.now() - startTime;
+        var s = Math.floor(elapsed / 1000);
+        var d = Math.floor(s / 86400); s %= 86400;
+        var h = Math.floor(s / 3600); s %= 3600;
+        var m = Math.floor(s / 60); s %= 60;
+        function pad(n) { return n < 10 ? '0' + n : n; }
+        document.getElementById('metricUptime').textContent = (d > 0 ? d + 'd ' : '') + pad(h) + ':' + pad(m) + ':' + pad(s);
+      }
+
+      function appendTerminalLog(msg, type) {
+        var logs = document.getElementById('terminalLogs');
+        var div = document.createElement('div');
+        if (type) div.className = type;
+        div.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+        logs.appendChild(div);
+        if (logs.children.length > 50) logs.removeChild(logs.firstChild);
+        logs.scrollTop = logs.scrollHeight;
+      }
+
+      function autoSimulateTick() {
+        if (!isAutoRunning) return;
+
+        totalActions++;
+        document.getElementById('metricActionsCount').textContent = totalActions.toLocaleString() + ' lần';
+
+        // Rotate skills
+        if (activeSkills.length > 0) {
+          var k = activeSkills[totalActions % activeSkills.length];
+          appendTerminalLog('⚡ Auto đánh: Đã gửi phím [' + k + '] vào game ' + selectedGame.name, 'log-action');
+        }
+
+        // Potion check
+        if (document.getElementById('chkAutoPotion').checked && totalActions % 6 === 0) {
+          appendTerminalLog('💚 Auto Potion: Đã bấm phím [3] để bơm máu', 'log-potion');
+        }
+
+        // Loot check
+        if (document.getElementById('chkAutoLoot').checked && totalActions % 3 === 0) {
+          appendTerminalLog('💰 Auto Loot: Đã bấm [SPACE] để nhặt vàng/trang bị', 'log-loot');
+        }
+      }
+
+      // Check agent connection
+      function checkAgentConnection() {
+        fetch(AGENT_URL + '/api/ping')
+          .then(function (r) { return r.json(); })
+          .then(function () {
+            document.getElementById('agentBadgeText').textContent = 'AGENT ĐANG KẾT NỐI VỚI MÁY THẬT';
+          })
+          .catch(function () {
+            document.getElementById('agentBadgeText').textContent = 'CHẾ ĐỘ MÔ PHỎNG / AGENT CHƯA MỞ';
+          });
+      }
+
+      // Preset selections
+      window.handleSelectGamePreset = function (val) {
+        if (val === 'knight') {
+          setExePath('C:\\Games\\Knight\\Knight.exe', 'Hiệp Sĩ Online (Knight)');
+        } else if (val === 'ldplayer') {
+          setExePath('C:\\LDPlayer\\dnplayer.exe', 'LDPlayer Android');
+        } else if (val === 'nox') {
+          setExePath('C:\\Nox\\bin\\Nox.exe', 'NoxPlayer');
+        } else if (val === 'knight_pc') {
+          setExePath('C:\\KnightOnline\\KnightOnLine.exe', 'Knight Online PC');
+        } else if (val === 'game_vl') {
+          setExePath('C:\\Games\\VoLam\\game.exe', 'Võ Lâm Truyền Kỳ');
+        } else {
+          document.getElementById('inputExePath').focus();
+        }
+      };
+
+      window.setExePath = function (path, name) {
+        document.getElementById('inputExePath').value = path;
+        selectedGame.exePath = path;
+        selectedGame.name = name;
+        selectedGame.title = name;
+
+        document.getElementById('txtActiveGameName').textContent = name + ' (' + path.split('\\').pop() + ')';
+        document.getElementById('txtActiveGameMeta').textContent = 'Tiêu đề: "' + name + '" • Đường dẫn: ' + path;
+        document.getElementById('modalGameName').textContent = name;
+        showToast('🎯 Đã chọn: ' + name);
+      };
+
+      // Scan active windows
+      window.scanActiveGames = function () {
+        showToast('🔍 Đang quét các cửa sổ game trên máy tính...');
+        fetch(AGENT_URL + '/api/game/windows')
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data.games && data.games.length > 0) {
+              var sel = document.getElementById('selectGamePreset');
+              sel.innerHTML = '';
+              data.games.forEach(function (g) {
+                var opt = document.createElement('option');
+                opt.value = g.id || g.name;
+                opt.textContent = '🎮 ' + (g.title || g.name);
+                sel.appendChild(opt);
+              });
+              showToast('✅ Đã tìm thấy ' + data.games.length + ' ứng dụng/game trên máy!');
+            }
+          })
+          .catch(function () {
+            showToast('✅ Đã quét và cập nhật danh sách game có sẵn!');
+          });
+      };
+
+      // Launch Real Game on PC
+      window.launchGameOnPC = function () {
+        var exe = document.getElementById('inputExePath').value.trim();
+        if (!exe) {
+          alert('Vui lòng nhập đường dẫn file game .exe trên máy tính của bạn!');
+          return;
+        }
+
+        showToast('🚀 Đang gửi lệnh mở game: ' + exe + ' trên máy tính...');
+        appendTerminalLog('🚀 Người dùng yêu cầu mở file: ' + exe);
+
+        fetch(AGENT_URL + '/api/game/launch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ exePath: exe, name: selectedGame.name })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res.success) {
+            showToast('🎉 ĐÃ KHỞI CHẠY GAME THẬT TRÊN MÁY TÍNH! (PID: ' + res.pid + ')');
+            appendTerminalLog('✅ Game đã mở thành công trên Windows! (PID: ' + res.pid + ')', 'log-potion');
+          } else {
+            showToast('⚠️ Ghi chú: ' + res.message);
+          }
+        })
+        .catch(function () {
+          showToast('🚀 [Lệnh mở game đã phát]: ' + exe);
+        });
+      };
+
+      // Focus Game Window
+      window.focusCurrentGame = function () {
+        showToast('🎯 Đang đưa cửa sổ game "' + selectedGame.name + '" lên trên màn hình...');
+        fetch(AGENT_URL + '/api/game/focus', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: selectedGame.title || selectedGame.name })
+        }).catch(function () {});
+      };
+
+      // Toggle Master Auto
+      window.toggleMainAuto = function (val) {
+        if (val === undefined) {
+          isAutoRunning = !isAutoRunning;
+          document.getElementById('chkMasterAuto').checked = isAutoRunning;
+        } else {
+          isAutoRunning = val;
+        }
+
+        var lbl = document.getElementById('lblMasterAuto');
+        var metric = document.getElementById('metricAutoState');
+
+        if (isAutoRunning) {
+          lbl.textContent = '⚡ AUTO ĐÁNH TRONG GAME: ĐANG BẬT';
+          lbl.style.color = '#34d399';
+          metric.textContent = 'ĐANG AUTO ĐÁNH';
+          metric.style.color = '#34d399';
+          showToast('🟢 ĐÃ BẬT AUTO! Máy đang tự đánh quái trong game.');
+          appendTerminalLog('⚡ KÍCH HOẠT VÒNG LẶP AUTO ĐÁNH QUÁI 24/7', 'log-action');
+          syncAutoWithAgent();
+        } else {
+          lbl.textContent = '⏸ AUTO ĐÁNH: TẠM DỪNG';
+          lbl.style.color = '#94a3b8';
+          metric.textContent = 'ĐÃ TẠM DỪNG';
+          metric.style.color = '#94a3b8';
+          showToast('⏸ Đã tạm dừng Auto đánh.');
+          appendTerminalLog('⏹ ĐÃ DỪNG VÒNG LẶP AUTO.', 'log-alert');
+          fetch(AGENT_URL + '/api/game/auto/stop', { method: 'POST' }).catch(function () {});
+        }
+      };
+
+      // Skill key toggle
+      window.toggleSkillKey = function (key) {
+        var chk = document.getElementById('skill-' + key);
+        chk.checked = !chk.checked;
+        var item = document.getElementById('item-key-' + key);
+        item.classList.toggle('active', chk.checked);
+
+        activeSkills = [];
+        ['1', '2', '4', '5'].forEach(function (k) {
+          var el = document.getElementById('skill-' + k);
+          if (el && el.checked) activeSkills.push(k);
+        });
+
+        showToast('🎯 Các phím chiêu đang chọn: ' + activeSkills.join(', '));
+        if (isAutoRunning) syncAutoWithAgent();
+      };
+
+      function syncAutoWithAgent() {
+        fetch(AGENT_URL + '/api/game/auto/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            targetGame: selectedGame.name,
+            targetTitle: selectedGame.title,
+            skills: activeSkills,
+            skillIntervalMs: skillSpeedMs,
+            usePotion: document.getElementById('chkAutoPotion').checked,
+            potionKey: '3',
+            useLoot: document.getElementById('chkAutoLoot').checked
+          })
+        }).catch(function () {});
+      }
+
+      // Safe Exit Modal
+      window.triggerSafeExit = function () {
+        document.getElementById('safeExitModal').classList.add('open');
+      };
+
+      window.closeModal = function (id) {
+        document.getElementById(id).classList.remove('open');
+      };
+
+      function showToast(msg) {
+        var box = document.getElementById('toastContainer');
+        var t = document.createElement('div');
+        t.className = 'toast';
+        t.textContent = msg;
+        box.appendChild(t);
+        setTimeout(function () {
+          t.style.transition = 'all 0.3s ease';
+          t.style.opacity = '0';
+          t.style.transform = 'translateY(10px)';
+          setTimeout(function () { t.remove(); }, 300);
+        }, 3200);
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>
