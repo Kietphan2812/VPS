@@ -220,6 +220,7 @@ let gameAutoState = {
 let gameAutoTimer = null;
 let gamePotionTimer = null;
 let gameManaTimer = null;
+let pendingTimeouts = []; // Track tất cả setTimeout chờ đăng nhập/khởi động
 
 function appendGameLog(msg) {
   const line = `[${new Date().toLocaleTimeString('vi-VN')}] ${msg}`;
@@ -281,6 +282,9 @@ function stopAndExitGame() {
 
 // Bật lại: Tự động khởi chạy game -> Đăng nhập -> Cày game
 function launchLoginAndFarm(config) {
+  // Hủy mọi đăng nhập đang chờ trước
+  stopRealGameAuto();
+
   const exePath = config.exePath || gameAutoState.exePath;
   const launchRes = launchRealGame(exePath, config.targetGame);
   if (!launchRes.success) {
@@ -289,20 +293,38 @@ function launchLoginAndFarm(config) {
 
   const delayMs = config.loginDelayMs || 4500;
   appendGameLog(`⏳ Đang đợi game load (${delayMs / 1000}s) trước khi đăng nhập và cày...`);
-  
-  setTimeout(() => {
+
+  // Cờ kiểm tra: nếu bị hủy giữa chừng thì không gửi phím
+  const sessionId = Date.now();
+  gameAutoState._loginSessionId = sessionId;
+
+  function safeTimeout(fn, ms) {
+    const t = setTimeout(() => {
+      // Kiểm tra session còn hợp lệ không (chưa bị tắt)
+      if (gameAutoState._loginSessionId !== sessionId) return;
+      fn();
+    }, ms);
+    pendingTimeouts.push(t);
+    return t;
+  }
+
+  safeTimeout(() => {
     focusGameWindow(config.targetTitle || 'HiepSiOnline_400');
 
     // Tự động nhấn "Chơi tiếp / Đăng nhập"
     if (config.autoLogin !== false) {
       appendGameLog(`🔑 [Tự Đăng Nhập] Đang bấm vào game (Chơi tiếp)...`);
       sendKeyToGame('{ENTER}');
-      setTimeout(() => sendKeyToGame('5'), 1200);
-      setTimeout(() => sendKeyToGame('{ENTER}'), 2500);
+      safeTimeout(() => sendKeyToGame('5'), 1200);
+      safeTimeout(() => sendKeyToGame('{ENTER}'), 2500);
     }
 
     // Bắt đầu vòng lặp cày game
-    setTimeout(() => {
+    safeTimeout(() => {
+      if (gameAutoState._loginSessionId !== sessionId) {
+        appendGameLog(`⏹ [Đăng nhập bị hủy] Không khởi động auto vì người dùng đã tắt.`);
+        return;
+      }
       startRealGameAuto(config);
       appendGameLog(`⚡ [HỆ THỐNG] ĐÃ TỰ ĐỘNG BẬT CÀY GAME THÀNH CÔNG!`);
     }, (config.autoLogin !== false) ? 3500 : 1000);
@@ -386,6 +408,12 @@ function startRealGameAuto(config) {
 // Dừng vòng lặp auto
 function stopRealGameAuto() {
   gameAutoState.isRunning = false;
+  gameAutoState._loginSessionId = null; // Hủy bất kỳ phiên đăng nhập đang chờ
+
+  // Hủy tất cả setTimeout đang chờ (đăng nhập, focus, gửi phím)
+  pendingTimeouts.forEach(t => clearTimeout(t));
+  pendingTimeouts = [];
+
   if (gameAutoTimer) {
     clearInterval(gameAutoTimer);
     gameAutoTimer = null;
@@ -398,8 +426,8 @@ function stopRealGameAuto() {
     clearInterval(gameManaTimer);
     gameManaTimer = null;
   }
-  appendGameLog(`⏹ ĐÃ DỪNG AUTO ĐÁNH.`);
-  return { success: true, message: 'Đã tắt tự động đánh game' };
+  appendGameLog(`⏹ ĐÃ DỪNG AUTO ĐÁNH VÀ HỦY TẤT CẢ LỆNH ĐĂNG NHẬP ĐANG CHỜ.`);
+  return { success: true, message: 'Đã tắt tự động đánh game và hủy đăng nhập đang chờ' };
 }
 
 // Hàm gửi phím thật vào game qua PowerShell
