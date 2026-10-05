@@ -38,8 +38,12 @@
 - Tại ô **"Đường dẫn file chạy game (.exe)"**, nhập đường dẫn đến game bạn muốn chơi (ví dụ game Knight của bạn).
 - Bấm **"Khởi Chạy Game Trên Máy Tính"** (hoặc mở sẵn game của bạn từ trước).
 
-### Bước 3: Bật Auto Đánh & Yên Tâm Đi Ngủ
-1. Tích chọn các phím skill bạn muốn nhân vật tự đánh (Chiêu 1, Chiêu 2...).
-2. Bật công tắc lớn: **"⚡ AUTO ĐÁNH TRONG GAME: ĐANG BẬT"**.
-3. Bạn sẽ thấy nhân vật trong game thật của bạn tự động xuất chiêu và đánh quái liên tục!
-4. Bấm **"TẮT WEB ĐI NGỦ"** và yên tâm tắt tab web — game vẫn đang tự động cày đồ trên máy!
+### Bước 3: Đăng Nhập & Vào Game An Toàn (Không Bị Out Game)
+1. **LƯU Ý QUAN TRỌNG**: Khi bạn vừa mở game hoặc muốn vào game để đăng nhập tài khoản / mật khẩu:
+   - Hãy bấm nút **"🛑 TẮT CHẠY TỰ ĐỘNG"** (màu đỏ).
+   - Khi tự động đã tắt, bàn phím sẽ KHÔNG bị gửi phím tự động vào game, giúp bạn thoải mái nhập mật khẩu, chọn cụm máy chủ và chọn nhân vật mà không bị bấm nhầm làm văng/out game!
+2. Đưa nhân vật của bạn di chuyển ra bãi quái cần cày đồ.
+3. Tích chọn các phím skill bạn muốn đánh (Chiêu 1, Chiêu 2, Chiêu 5...).
+4. Bấm nút **"⚡ BẬT AUTO ĐÁNH"** (hoặc nút xanh).
+5. Bạn sẽ thấy nhân vật trong game thật tự động xuất chiêu và đánh quái liên tục!
+6. Bấm **"🌙 TẮT WEB ĐI NGỦ"** và yên tâm tắt tab web — máy tính vẫn tiếp tục tự động cày đồ 24/7!

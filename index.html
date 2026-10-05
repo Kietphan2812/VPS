@@ -222,6 +222,19 @@
       color: #ffffff;
     }
 
+    .btn-danger-solid {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: #ffffff;
+      border: 1px solid #b91c1c;
+      font-weight: 700;
+      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
+    }
+    .btn-danger-solid:hover {
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(239, 68, 68, 0.6);
+    }
+
     .btn-sm {
       padding: 6px 12px;
       font-size: 12px;
@@ -744,6 +757,12 @@
           <span class="dot-pulse"></span>
           <span id="agentBadgeText">AGENT SẴN SÀNG KẾT NỐI</span>
         </div>
+        <button id="btnHeaderStopAuto" class="btn btn-danger-solid btn-sm" onclick="stopGameAuto()" style="display: none; align-items: center; gap: 6px;">
+          🛑 TẮT CHẠY TỰ ĐỘNG
+        </button>
+        <button id="btnHeaderStartAuto" class="btn btn-success btn-sm" onclick="startGameAuto()" style="display: flex; align-items: center; gap: 6px;">
+          ⚡ BẬT AUTO ĐÁNH
+        </button>
         <button class="btn btn-primary btn-sm" onclick="openDownloadModal()" style="background: linear-gradient(135deg, #10b981, #059669); border: none; font-weight: 700; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); display: flex; align-items: center; gap: 6px;">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           ⚡ Tải Bộ Auto 1-Click (PC)
@@ -829,14 +848,15 @@
               
               <!-- Quick Preset Chips -->
               <div class="preset-chips">
-                <span class="preset-chip" onclick="setExePath('C:\\Users\\Administrator\\Desktop\\VPS\\VPS\\HSO_v403B.exe', 'HiepSiOnline')">🗡️ HSO (HiepSiOnline)</span>
-                <span class="preset-chip" onclick="setExePath('C:\\Users\\DELL\\Downloads\\HSO_v403B.exe', 'Knight Age PC (HSO)')">🗡️ Knight Age PC</span>
+                <span class="preset-chip" onclick="setExePath('D:\\Downloads\\VPS-main\\HSO_v403B.exe', 'HSO_v403B (Thư mục này)')">🗡️ D:\Downloads\VPS-main\HSO_v403B.exe</span>
+                <span class="preset-chip" onclick="setExePath('C:\\Users\\DELL\\Downloads\\HSO_v403B.exe', 'Knight Age PC (HSO)')">🗡️ C:\Users\DELL\Downloads\HSO_v403B.exe</span>
+                <span class="preset-chip" onclick="setExePath('C:\\Users\\Administrator\\Desktop\\VPS\\VPS\\HSO_v403B.exe', 'HiepSiOnline')">🗡️ HSO Desktop</span>
               </div>
             </div>
 
             <!-- Launch & Connect Buttons -->
             <div class="launch-row">
-              <button class="btn btn-primary" onclick="launchGameOnPC()" style="flex: 1;">
+              <button class="btn btn-primary" onclick="launchGameOnPC()" style="flex: 1.2;">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
                 Khởi Chạy Game Knight Age
               </button>
@@ -844,6 +864,32 @@
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
                 Hiện Cửa Sổ Game
               </button>
+            </div>
+
+            <!-- Quick Auto Control Buttons (Dành cho việc vào game không bị out) -->
+            <div style="display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap;">
+              <button class="btn btn-danger-solid" id="btnQuickStopAuto" onclick="stopGameAuto()" style="flex: 1.8; display: none; align-items: center; justify-content: center; gap: 6px; padding: 10px 14px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+                🛑 TẮT CHẠY TỰ ĐỘNG (ĐỂ VÀO GAME)
+              </button>
+              <button class="btn btn-success" id="btnQuickStartAuto" onclick="startGameAuto()" style="flex: 1.8; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 14px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                ⚡ BẬT AUTO ĐÁNH QUÁI
+              </button>
+              <button class="btn btn-secondary" onclick="pauseAutoToLogin()" style="flex: 1.2; padding: 10px 12px; font-size: 12px;" title="Tạm dừng auto để nhập tài khoản và chọn nhân vật an toàn">
+                ⏸️ Tạm Dừng Đăng Nhập
+              </button>
+              <button class="btn btn-secondary" onclick="killGameOnPC()" style="background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.35); color: #fca5a5;" title="Đóng hoàn toàn game nếu bị đơ hoặc lỗi">
+                ❌ Đóng Game
+              </button>
+            </div>
+
+            <!-- Anti-Disconnection Safety Guide Alert -->
+            <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: var(--radius-md); padding: 10px 14px; margin-top: 6px; display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 20px; flex-shrink: 0;">🛡️</span>
+              <div style="font-size: 12px; color: #fca5a5; line-height: 1.45; flex: 1;">
+                <b style="color: #f87171;">MẸO TRÁNH BỊ OUT GAME:</b> Trước khi đăng nhập tài khoản & mật khẩu, hãy bấm <b>[🛑 TẮT CHẠY TỰ ĐỘNG]</b> để phím không bị spam lung tung làm thoát game. Sau khi nhân vật đã đứng ở bãi quái, hãy bấm <b>[⚡ BẬT AUTO ĐÁNH QUÁI]</b>!
+              </div>
             </div>
           </div>
         </section>
@@ -871,7 +917,7 @@
             <div class="process-metrics">
               <div class="metric-col">
                 <span>Trạng thái đánh</span>
-                <strong id="metricAutoState" style="color: #34d399;">ĐANG AUTO CÀY QUÁI</strong>
+                <strong id="metricAutoState" style="color: #94a3b8;">ĐÃ TẮT (AN TOÀN VÀO GAME)</strong>
               </div>
               <div class="metric-col">
                 <span>Số chiêu đã xuất</span>
@@ -937,14 +983,26 @@
             <span style="font-size: 11px; color: #a5b4fc;">Auto-Attack 24/7</span>
           </div>
 
+          <!-- BIG ACTION BUTTONS: TẮT & BẬT AUTO ĐÁNH -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 6px;">
+            <button class="btn btn-danger-solid" id="btnSideStopAuto" onclick="stopGameAuto()" style="padding: 12px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+              🛑 TẮT TỰ ĐỘNG
+            </button>
+            <button class="btn btn-success" id="btnSideStartAuto" onclick="startGameAuto()" style="padding: 12px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              ⚡ BẬT AUTO
+            </button>
+          </div>
+
           <!-- BIG MASTER AUTO TOGGLE -->
-          <div class="master-switch-card" onclick="toggleMainAuto()">
+          <div class="master-switch-card" id="masterSwitchCard" onclick="toggleMainAuto()" style="border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.06);">
             <div class="master-switch-text">
-              <strong id="lblMasterAuto">⚡ AUTO ĐÁNH TRONG GAME: ĐANG BẬT</strong>
-              <p>Tự động gửi phím skill, đánh quái, bơm máu liên tục</p>
+              <strong id="lblMasterAuto" style="color: #f87171;">⏸ TỰ ĐỘNG CHẠY GAME: ĐÃ TẮT</strong>
+              <p>Chế độ an toàn: Không bấm phím vào game, bạn có thể tự do đăng nhập và chơi game</p>
             </div>
             <label class="switch" onclick="event.stopPropagation()">
-              <input type="checkbox" id="chkMasterAuto" checked onchange="toggleMainAuto(this.checked)">
+              <input type="checkbox" id="chkMasterAuto" onchange="toggleMainAuto(this.checked)">
               <span class="slider"></span>
             </label>
           </div>
@@ -1180,7 +1238,7 @@
     (function () {
       var defaultUrl = (window.location.protocol === 'file:' || window.location.hostname.includes('render.com')) ? 'http://localhost:3000' : '';
     var AGENT_URL = localStorage.getItem('vps_agent_url') || defaultUrl;
-      var isAutoRunning = true;
+      var isAutoRunning = false;
       var activeSkills = ['1', '2'];
       var skillSpeedMs = 600;
       var totalActions = 1842;
@@ -1210,6 +1268,8 @@
 
         // Check connection to local Agent
         checkAgentConnection();
+        // Check real auto status from Agent
+        checkGameAutoStatus();
       }
 
       function updateUptime() {
@@ -1407,34 +1467,129 @@
         }
       }, 3000);
 
-      // Toggle Master Auto
-      window.toggleMainAuto = function (val) {
-        if (val === undefined) {
-          isAutoRunning = !isAutoRunning;
-          document.getElementById('chkMasterAuto').checked = isAutoRunning;
-        } else {
-          isAutoRunning = val;
-        }
+      // Check game auto status from Agent
+      function checkGameAutoStatus() {
+        fetch(AGENT_URL + '/api/game/auto/status')
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data && data.isRunning) {
+              updateAutoUI(true, false);
+            } else {
+              updateAutoUI(false, false);
+            }
+          })
+          .catch(function () {
+            updateAutoUI(false, false);
+          });
+      }
+
+      // Update Auto UI state across all buttons & indicators
+      function updateAutoUI(running, showToastMsg) {
+        isAutoRunning = !!running;
+        var chk = document.getElementById('chkMasterAuto');
+        if (chk) chk.checked = isAutoRunning;
 
         var lbl = document.getElementById('lblMasterAuto');
         var metric = document.getElementById('metricAutoState');
+        var masterCard = document.getElementById('masterSwitchCard');
+        var btnHeaderStop = document.getElementById('btnHeaderStopAuto');
+        var btnHeaderStart = document.getElementById('btnHeaderStartAuto');
+        var btnQuickStop = document.getElementById('btnQuickStopAuto');
+        var btnQuickStart = document.getElementById('btnQuickStartAuto');
 
         if (isAutoRunning) {
-          lbl.textContent = '⚡ AUTO ĐÁNH TRONG GAME: ĐANG BẬT';
-          lbl.style.color = '#34d399';
-          metric.textContent = 'ĐANG AUTO ĐÁNH';
-          metric.style.color = '#34d399';
-          showToast('🟢 ĐÃ BẬT AUTO! Máy đang tự đánh quái trong game.');
-          appendTerminalLog('⚡ KÍCH HOẠT VÒNG LẶP AUTO ĐÁNH QUÁI 24/7', 'log-action');
-          syncAutoWithAgent();
+          if (lbl) {
+            lbl.textContent = '⚡ TỰ ĐỘNG CHẠY GAME: ĐANG BẬT';
+            lbl.style.color = '#34d399';
+          }
+          if (metric) {
+            metric.textContent = 'ĐANG AUTO ĐÁNH';
+            metric.style.color = '#34d399';
+          }
+          if (masterCard) {
+            masterCard.style.borderColor = 'rgba(16, 185, 129, 0.6)';
+            masterCard.style.background = 'linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(6, 182, 212, 0.12))';
+          }
+          if (btnHeaderStop) btnHeaderStop.style.display = 'flex';
+          if (btnHeaderStart) btnHeaderStart.style.display = 'none';
+          if (btnQuickStop) btnQuickStop.style.display = 'flex';
+          if (btnQuickStart) btnQuickStart.style.display = 'none';
+
+          if (showToastMsg) {
+            showToast('🟢 ĐÃ BẬT AUTO! Máy đang tự động đánh quái trong game.');
+            appendTerminalLog('⚡ KÍCH HOẠT VÒNG LẶP AUTO ĐÁNH QUÁI 24/7', 'log-action');
+          }
         } else {
-          lbl.textContent = '⏸ AUTO ĐÁNH: TẠM DỪNG';
-          lbl.style.color = '#94a3b8';
-          metric.textContent = 'ĐÃ TẠM DỪNG';
-          metric.style.color = '#94a3b8';
-          showToast('⏸ Đã tạm dừng Auto đánh.');
-          appendTerminalLog('⏹ ĐÃ DỪNG VÒNG LẶP AUTO.', 'log-alert');
-          fetch(AGENT_URL + '/api/game/auto/stop', { method: 'POST' }).catch(function () {});
+          if (lbl) {
+            lbl.textContent = '⏸ TỰ ĐỘNG CHẠY GAME: ĐÃ TẮT';
+            lbl.style.color = '#f87171';
+          }
+          if (metric) {
+            metric.textContent = 'ĐÃ TẮT (AN TOÀN VÀO GAME)';
+            metric.style.color = '#94a3b8';
+          }
+          if (masterCard) {
+            masterCard.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+            masterCard.style.background = 'rgba(239, 68, 68, 0.06)';
+          }
+          if (btnHeaderStop) btnHeaderStop.style.display = 'none';
+          if (btnHeaderStart) btnHeaderStart.style.display = 'flex';
+          if (btnQuickStop) btnQuickStop.style.display = 'none';
+          if (btnQuickStart) btnQuickStart.style.display = 'flex';
+
+          if (showToastMsg) {
+            showToast('🛑 ĐÃ TẮT TỰ ĐỘNG! Bạn có thể thoải mái đăng nhập mà không lo bị out.');
+            appendTerminalLog('⏹ [NGƯỜI DÙNG TẮT TỰ ĐỘNG] Đã dừng tất cả lệnh gửi phím vào game. Game an toàn để thao tác tay!', 'log-alert');
+          }
+        }
+      }
+
+      // Nút tắt chạy tự động game (Dừng auto ngay lập tức)
+      window.stopGameAuto = function () {
+        updateAutoUI(false, true);
+        fetch(AGENT_URL + '/api/game/auto/stop', { method: 'POST' }).catch(function () {});
+      };
+
+      // Nút bật chạy tự động game
+      window.startGameAuto = function () {
+        updateAutoUI(true, true);
+        syncAutoWithAgent();
+      };
+
+      // Tạm dừng auto để đăng nhập tài khoản / vào game an toàn không bị out
+      window.pauseAutoToLogin = function () {
+        window.stopGameAuto();
+        showToast('🛡️ ĐÃ TẮT TỰ ĐỘNG! Hãy đăng nhập, chọn nhân vật và vào bãi quái an toàn nhé.');
+      };
+
+      // Đóng hoàn toàn tiến trình Game trên máy tính
+      window.killGameOnPC = function () {
+        if (!confirm('Bạn có chắc muốn đóng/tắt hoàn toàn cửa sổ game Knight Age không?')) return;
+        showToast('🛑 Đang gửi lệnh đóng cửa sổ game...');
+        appendTerminalLog('🛑 Đã yêu cầu đóng cửa sổ game.');
+        window.stopGameAuto();
+        fetch(AGENT_URL + '/api/game/kill', { method: 'POST' })
+          .then(function (r) { return r.json(); })
+          .then(function (res) {
+            showToast('✅ Đã tắt cửa sổ game.');
+            appendTerminalLog('✅ ' + (res.message || 'Game đã được đóng.'));
+          })
+          .catch(function () {
+            showToast('⚠️ Đã gửi lệnh tắt game.');
+          });
+      };
+
+      // Toggle Master Auto
+      window.toggleMainAuto = function (val) {
+        if (val === undefined) {
+          if (isAutoRunning) {
+            window.stopGameAuto();
+          } else {
+            window.startGameAuto();
+          }
+        } else {
+          if (val) window.startGameAuto();
+          else window.stopGameAuto();
         }
       };
 

@@ -219,6 +219,7 @@ let gameAutoState = {
 
 let gameAutoTimer = null;
 let gamePotionTimer = null;
+let gameManaTimer = null;
 
 function appendGameLog(msg) {
   const line = `[${new Date().toLocaleTimeString('vi-VN')}] ${msg}`;
@@ -254,6 +255,20 @@ function launchRealGame(exePath, name) {
     appendGameLog(`❌ Không thể mở game: ${err.message}`);
     return { success: false, message: err.message };
   }
+}
+
+// Tắt hoàn toàn tiến trình game nếu cần
+function killRealGame() {
+  stopRealGameAuto();
+  const exeName = gameAutoState.exePath ? path.basename(gameAutoState.exePath) : 'HSO_v403B.exe';
+  if (os.platform() === 'win32') {
+    try {
+      exec(`taskkill /im "${exeName}" /f /t`);
+      exec(`taskkill /im "HSO_v403B.exe" /f /t`);
+    } catch (e) {}
+  }
+  appendGameLog(`🛑 ĐÃ TẮT TIẾN TRÌNH GAME: ${exeName}`);
+  return { success: true, message: `Đã đóng game ${exeName}` };
 }
 
 // Đưa cửa sổ game lên trên màn hình (Focus)
@@ -318,7 +333,7 @@ function startRealGameAuto(config) {
 
   // Vòng lặp bơm mana riêng biệt (Phím 8 trong Knight Age)
   if (config.useMana) {
-    setInterval(() => {
+    gameManaTimer = setInterval(() => {
       if (!gameAutoState.isRunning) return;
       sendKeyToGame('8');
       appendGameLog(`💙 [Auto Mana] Đã tự bơm mana (Phím 8)`);
@@ -339,8 +354,12 @@ function stopRealGameAuto() {
     clearInterval(gamePotionTimer);
     gamePotionTimer = null;
   }
+  if (gameManaTimer) {
+    clearInterval(gameManaTimer);
+    gameManaTimer = null;
+  }
   appendGameLog(`⏹ ĐÃ DỪNG AUTO ĐÁNH.`);
-  return { success: true };
+  return { success: true, message: 'Đã tắt tự động đánh game' };
 }
 
 // Hàm gửi phím thật vào game qua PowerShell
@@ -749,6 +768,12 @@ const server = http.createServer((req, res) => {
   // 21. Dừng Auto Đánh trong game
   if (pathname === '/api/game/auto/stop' && req.method === 'POST') {
     const result = stopRealGameAuto();
+    return jsonResponse(result);
+  }
+
+  // 21b. Đóng hoàn toàn tiến trình Game
+  if (pathname === '/api/game/kill' && req.method === 'POST') {
+    const result = killRealGame();
     return jsonResponse(result);
   }
 

@@ -205,6 +205,143 @@ def stop_task(task_id):
             append_task_log(task_id, "⏹ Người dùng yêu cầu DỪNG tiến trình.")
     return {"success": True}
 
+# ==========================================
+# HỆ THỐNG AUTO ĐIỀU KHIỂN & ĐÁNH GAME THẬT TRÊN PC
+# ==========================================
+game_auto_state = {
+    'isRunning': False,
+    'targetGame': '',
+    'targetTitle': '',
+    'exePath': '',
+    'pid': None,
+    'startedAt': None,
+    'totalActions': 0,
+    'skills': ['1', '2'],
+    'skillIntervalMs': 600,
+    'useAttack': True,
+    'usePotion': True,
+    'potionKey': '3',
+    'potionIntervalMs': 3500,
+    'useLoot': True,
+    'lootKey': ' ',
+    'logBuffer': []
+}
+game_auto_stop_event = threading.Event()
+
+def append_game_log(msg):
+    t_str = time.strftime('%H:%M:%S')
+    line = f"[{t_str}] {msg}"
+    with lock:
+        game_auto_state['logBuffer'].append(line)
+        if len(game_auto_state['logBuffer']) > 200:
+            game_auto_state['logBuffer'].pop(0)
+    print(f"[GameAuto] {msg}")
+
+def launch_real_game(exe_path, name=None):
+    if not exe_path:
+        return {"success": False, "message": "Chưa có đường dẫn file game .exe!"}
+    try:
+        if platform.system() != "Windows":
+            return {"success": False, "message": "Tính năng chỉ hỗ trợ trên hệ điều hành Windows."}
+        proc = subprocess.Popen([exe_path], cwd=os.path.dirname(exe_path), shell=False)
+        with lock:
+            game_auto_state['exePath'] = exe_path
+            game_auto_state['targetGame'] = name or os.path.basename(exe_path)
+            game_auto_state['pid'] = proc.pid
+        append_game_log(f"🚀 ĐÃ KHỞI CHẠY GAME THẬT: {exe_path} (PID: {proc.pid})")
+        return {"success": True, "pid": proc.pid, "name": game_auto_state['targetGame']}
+    except Exception as e:
+        append_game_log(f"❌ Không thể mở game: {str(e)}")
+        return {"success": False, "message": str(e)}
+
+def kill_real_game():
+    stop_real_game_auto()
+    exe_name = os.path.basename(game_auto_state['exePath']) if game_auto_state['exePath'] else 'HSO_v403B.exe'
+    if platform.system() == "Windows":
+        try:
+            subprocess.run(f'taskkill /im "{exe_name}" /f /t', shell=True)
+            subprocess.run('taskkill /im "HSO_v403B.exe" /f /t', shell=True)
+        except Exception:
+            pass
+    append_game_log(f"🛑 ĐÃ TẮT TIẾN TRÌNH GAME: {exe_name}")
+    return {"success": True, "message": f"Đã đóng game {exe_name}"}
+
+def focus_game_window(target_title=None):
+    if platform.system() == "Windows":
+        title = target_title or game_auto_state['targetTitle'] or game_auto_state['targetGame']
+        ps_cmd = f"$wshell = New-Object -ComObject WScript.Shell; $wshell.AppActivate('{title}')"
+        subprocess.Popen(["powershell", "-NoProfile", "-Command", ps_cmd])
+
+def send_key_to_game(key):
+    if platform.system() != "Windows" or not key:
+        return
+    target = game_auto_state['targetTitle'] or game_auto_state['targetGame']
+    script_path = os.path.join(BASE_DIR, 'send_keys.ps1')
+    if os.path.exists(script_path):
+        subprocess.Popen(["powershell", "-ExecutionPolicy", "Bypass", "-File", script_path, target, key])
+    else:
+        ps_cmd = f"$wshell = New-Object -ComObject WScript.Shell; if ('{target}') {{ $wshell.AppActivate('{target}') }}; $wshell.SendKeys('{key}')"
+        subprocess.Popen(["powershell", "-NoProfile", "-Command", ps_cmd])
+
+def game_auto_worker():
+    skill_index = 0
+    while not game_auto_stop_event.is_set():
+        if not game_auto_state['isRunning']:
+            break
+        skills = game_auto_state.get('skills', ['1', '2'])
+        if skills:
+            k = skills[skill_index % len(skills)]
+            skill_index += 1
+            send_key_to_game(k)
+            with lock:
+                game_auto_state['totalActions'] += 1
+        if game_auto_state.get('useLoot') and (time.time() % 3 < 1):
+            time.sleep(0.1)
+            send_key_to_game(' ')
+        interval = max(0.15, game_auto_state.get('skillIntervalMs', 600) / 1000.0)
+        time.sleep(interval)
+
+def game_potion_worker():
+    while not game_auto_stop_event.is_set():
+        if not game_auto_state['isRunning']:
+            break
+        interval = max(1.0, game_auto_state.get('potionIntervalMs', 3500) / 1000.0)
+        time.sleep(interval)
+        if game_auto_stop_event.is_set() or not game_auto_state['isRunning']:
+            break
+        pk = game_auto_state.get('potionKey', '7')
+        send_key_to_game(pk)
+        append_game_log(f"💚 [Auto Potion] Đã tự bơm máu (Phím {pk})")
+
+def start_real_game_auto(config):
+    stop_real_game_auto()
+    global game_auto_stop_event
+    game_auto_stop_event = threading.Event()
+    with lock:
+        game_auto_state['isRunning'] = True
+        game_auto_state['startedAt'] = int(time.time() * 1000)
+        if config.get('targetGame'): game_auto_state['targetGame'] = config['targetGame']
+        if config.get('targetTitle'): game_auto_state['targetTitle'] = config['targetTitle']
+        if config.get('skills'): game_auto_state['skills'] = config['skills']
+        if config.get('skillIntervalMs'): game_auto_state['skillIntervalMs'] = max(150, int(config['skillIntervalMs']))
+        if 'useAttack' in config: game_auto_state['useAttack'] = bool(config['useAttack'])
+        if 'usePotion' in config: game_auto_state['usePotion'] = bool(config['usePotion'])
+        if config.get('potionKey'): game_auto_state['potionKey'] = config['potionKey']
+        if 'useLoot' in config: game_auto_state['useLoot'] = bool(config['useLoot'])
+    append_game_log(f"⚡ BẮT ĐẦU AUTO ĐÁNH TRONG GAME: '{game_auto_state['targetGame'] or 'Cửa sổ game active'}'")
+    focus_game_window(game_auto_state['targetTitle'])
+    threading.Thread(target=game_auto_worker, daemon=True).start()
+    if game_auto_state.get('usePotion'):
+        threading.Thread(target=game_potion_worker, daemon=True).start()
+    return {"success": True, "message": "Auto đang chạy trong game thật trên máy!"}
+
+def stop_real_game_auto():
+    game_auto_stop_event.set()
+    with lock:
+        game_auto_state['isRunning'] = False
+    append_game_log("⏹ ĐÃ DỪNG AUTO ĐÁNH.")
+    return {"success": True, "message": "Đã tắt tự động đánh game"}
+
 # Lấy thống kê hệ thống (CPU & RAM)
 def get_system_stats():
     total_mem = 0
@@ -347,6 +484,54 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.send_json({"taskId": task_id, "logs": logs})
             return
 
+        if path == '/api/game/windows':
+            games_list = [
+                {"id": "knight", "name": "HSO_v403B.exe (Hiệp Sĩ Online - HSO PC)", "title": "HiepSiOnline_400"},
+                {"id": "ldplayer", "name": "dnplayer.exe (Giả lập LDPlayer Android)", "title": "LDPlayer"},
+                {"id": "nox", "name": "Nox.exe (Giả lập NoxPlayer)", "title": "NoxPlayer"},
+                {"id": "knight_pc", "name": "KnightOnline.exe (MMORPG PC)", "title": "Knight Online"},
+                {"id": "game_vl", "name": "game.exe (Võ Lâm Truyền Kỳ)", "title": "Võ Lâm Truyền Kỳ"}
+            ]
+            script_path = os.path.join(BASE_DIR, 'list_apps.ps1')
+            if os.path.exists(script_path):
+                try:
+                    res = subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", script_path], capture_output=True, text=True, timeout=5)
+                    parsed_apps = json.loads(res.stdout or "[]")
+                    if isinstance(parsed_apps, list):
+                        games_list = parsed_apps + games_list
+                except Exception:
+                    pass
+            self.send_json({"games": games_list})
+            return
+
+        if path == '/api/game/auto/status':
+            with lock:
+                st = dict(game_auto_state)
+            uptime = (int(time.time() * 1000) - st['startedAt']) if st.get('startedAt') else 0
+            st['uptimeMs'] = uptime
+            self.send_json(st)
+            return
+
+        if path == '/api/screen':
+            query_params = parse_qs(parsed.query)
+            target_title = query_params.get('title', [''])[0]
+            capture_script = os.path.join(BASE_DIR, 'capture.ps1')
+            out_img = os.path.join(BASE_DIR, 'screen_test.jpg')
+            try:
+                subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", capture_script, "-outFile", out_img, "-windowTitle", target_title], timeout=8)
+                if os.path.exists(out_img):
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'image/jpeg')
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    with open(out_img, 'rb') as f:
+                        self.wfile.write(f.read())
+                    return
+            except Exception:
+                pass
+            self.send_json({"error": "Không thể chụp màn hình"}, 500)
+            return
+
         self.send_json({"error": "Endpoint không tồn tại"}, 404)
 
     def do_POST(self):
@@ -445,6 +630,31 @@ class RequestHandler(BaseHTTPRequestHandler):
 
         if path == '/api/macro/stop':
             self.send_json({"success": True, "message": "Da dung macro"})
+            return
+
+        if path == '/api/game/launch':
+            res = launch_real_game(body.get('exePath'), body.get('name'))
+            self.send_json(res)
+            return
+
+        if path == '/api/game/focus':
+            focus_game_window(body.get('title') or body.get('name'))
+            self.send_json({"success": True})
+            return
+
+        if path == '/api/game/auto/start':
+            res = start_real_game_auto(body)
+            self.send_json(res)
+            return
+
+        if path == '/api/game/auto/stop':
+            res = stop_real_game_auto()
+            self.send_json(res)
+            return
+
+        if path == '/api/game/kill':
+            res = kill_real_game()
+            self.send_json(res)
             return
 
         self.send_json({"error": "Endpoint không tồn tại"}, 404)
