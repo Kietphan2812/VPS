@@ -1246,12 +1246,14 @@
   <script>
     (function () {
       var defaultUrl = (window.location.protocol === 'file:' || window.location.hostname.includes('render.com')) ? 'http://localhost:3000' : '';
-    var AGENT_URL = localStorage.getItem('vps_agent_url') || defaultUrl;
+      var AGENT_URL = localStorage.getItem('vps_agent_url') || defaultUrl;
       var isAutoRunning = false;
       var activeSkills = ['1', '2'];
       var skillSpeedMs = 600;
-      var totalActions = 1842;
-      var startTime = Date.now() - (2 * 3600000 + 14 * 60000 + 38000);
+      var totalActions = 0;          // Bắt đầu từ 0 - không giả lập
+      var startTime = null;          // null = chưa bật auto, sẽ set khi BẬT
+      var uptimeInterval = null;     // Timer đếm uptime - chỉ chạy khi auto BẬT
+      var simTickInterval = null;    // Timer mô phỏng log
       var selectedGame = {
         name: 'Knight Age (HiepSiOnline_400)',
         title: 'HiepSiOnline_400',
@@ -1269,19 +1271,20 @@
           }
         });
 
-        // Uptime counter
-        setInterval(updateUptime, 1000);
-
-        // Simulation auto loop for live console feedback
-        setInterval(autoSimulateTick, skillSpeedMs);
+        // Hiển thị trạng thái tắt ban đầu
+        updateUptime();
 
         // Check connection to local Agent
         checkAgentConnection();
-        // Check real auto status from Agent
+        // Check real auto status from Agent (không tự bật)
         checkGameAutoStatus();
       }
 
       function updateUptime() {
+        if (!startTime) {
+          document.getElementById('metricUptime').textContent = '-- : -- : --';
+          return;
+        }
         var elapsed = Date.now() - startTime;
         var s = Math.floor(elapsed / 1000);
         var d = Math.floor(s / 86400); s %= 86400;
@@ -1289,6 +1292,22 @@
         var m = Math.floor(s / 60); s %= 60;
         function pad(n) { return n < 10 ? '0' + n : n; }
         document.getElementById('metricUptime').textContent = (d > 0 ? d + 'd ' : '') + pad(h) + ':' + pad(m) + ':' + pad(s);
+      }
+
+      function startUptimeTimer() {
+        startTime = Date.now();
+        if (uptimeInterval) clearInterval(uptimeInterval);
+        uptimeInterval = setInterval(updateUptime, 1000);
+        // Bắt sim tick
+        if (simTickInterval) clearInterval(simTickInterval);
+        simTickInterval = setInterval(autoSimulateTick, skillSpeedMs);
+      }
+
+      function stopUptimeTimer() {
+        if (uptimeInterval) { clearInterval(uptimeInterval); uptimeInterval = null; }
+        if (simTickInterval) { clearInterval(simTickInterval); simTickInterval = null; }
+        startTime = null;
+        updateUptime();
       }
 
       function appendTerminalLog(msg, type) {
@@ -1314,12 +1333,12 @@
         }
 
         // Potion check
-        if (document.getElementById('chkAutoPotion').checked && totalActions % 6 === 0) {
+        if (document.getElementById('chkAutoPotion') && document.getElementById('chkAutoPotion').checked && totalActions % 6 === 0) {
           appendTerminalLog('💚 Auto Potion: Đã bấm phím [3] để bơm máu', 'log-potion');
         }
 
         // Loot check
-        if (document.getElementById('chkAutoLoot').checked && totalActions % 3 === 0) {
+        if (document.getElementById('chkAutoLoot') && document.getElementById('chkAutoLoot').checked && totalActions % 3 === 0) {
           appendTerminalLog('💰 Auto Loot: Đã bấm [SPACE] để nhặt vàng/trang bị', 'log-loot');
         }
       }
@@ -1507,6 +1526,9 @@
         var btnQuickStart = document.getElementById('btnQuickStartAuto');
 
         if (isAutoRunning) {
+          // BẬT: bắt đầu đếm uptime từ bây giờ
+          startUptimeTimer();
+
           if (lbl) {
             lbl.textContent = '⚡ TỰ ĐỘNG CHẠY GAME: ĐANG BẬT';
             lbl.style.color = '#34d399';
@@ -1529,6 +1551,11 @@
             appendTerminalLog('⚡ KÍCH HOẠT VÒNG LẶP AUTO ĐÁNH QUÁI 24/7', 'log-action');
           }
         } else {
+          // TẮT: dừng đếm uptime, reset về 0
+          stopUptimeTimer();
+          totalActions = 0;
+          document.getElementById('metricActionsCount').textContent = '0 lần';
+
           if (lbl) {
             lbl.textContent = '⏸ TỰ ĐỘNG CHẠY GAME: ĐÃ TẮT';
             lbl.style.color = '#f87171';
