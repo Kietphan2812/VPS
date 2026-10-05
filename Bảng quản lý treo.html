@@ -1005,13 +1005,13 @@
           </div>
 
           <!-- BIG MASTER AUTO TOGGLE -->
-          <div class="master-switch-card" id="masterSwitchCard" onclick="toggleMainAuto()" style="border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.06);">
+          <div class="master-switch-card" id="masterSwitchCard" onclick="toggleMainAuto(undefined, event)" style="border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.06);">
             <div class="master-switch-text">
               <strong id="lblMasterAuto" style="color: #f87171;">⏸ TỰ ĐỘNG CHẠY GAME: ĐÃ TẮT</strong>
               <p>Chế độ an toàn: Không bấm phím vào game, bạn có thể tự do đăng nhập và chơi game</p>
             </div>
             <label class="switch" onclick="event.stopPropagation()">
-              <input type="checkbox" id="chkMasterAuto" onchange="toggleMainAuto(this.checked)">
+              <input type="checkbox" id="chkMasterAuto" onchange="toggleMainAuto(this.checked, event)">
               <span class="slider"></span>
             </label>
           </div>
@@ -1276,8 +1276,9 @@
 
         // Check connection to local Agent
         checkAgentConnection();
-        // Check real auto status from Agent (không tự bật)
+        // Check real auto status from Agent (ngay lập tức)
         checkGameAutoStatus();
+        setTimeout(checkGameAutoStatus, 500);
       }
 
       function updateUptime() {
@@ -1295,7 +1296,7 @@
       }
 
       function startUptimeTimer() {
-        startTime = Date.now();
+        if (!startTime) startTime = Date.now();
         if (uptimeInterval) clearInterval(uptimeInterval);
         uptimeInterval = setInterval(updateUptime, 1000);
         // Bắt sim tick
@@ -1501,15 +1502,32 @@
           .then(function (r) { return r.json(); })
           .then(function (data) {
             if (data && data.isRunning) {
+              if (data.startedAt) {
+                startTime = data.startedAt;
+              } else if (data.uptimeMs) {
+                startTime = Date.now() - data.uptimeMs;
+              }
+              if (typeof data.totalActions === 'number') {
+                totalActions = data.totalActions;
+                var elAct = document.getElementById('metricActionsCount');
+                if (elAct) elAct.textContent = totalActions.toLocaleString() + ' lần';
+              }
               updateAutoUI(true, false);
+              updateGameProcessBadge(true);
             } else {
-              updateAutoUI(false, false);
+              if (isAutoRunning) {
+                updateAutoUI(false, false);
+                updateGameProcessBadge(false);
+              }
             }
           })
           .catch(function () {
-            updateAutoUI(false, false);
+            // Không kết nối được Agent
           });
       }
+
+      // Tự động kiểm tra đồng bộ trạng thái với Agent định kỳ mỗi 2 giây
+      setInterval(checkGameAutoStatus, 2000);
 
       // Update Auto UI state across all buttons & indicators
       function updateAutoUI(running, showToastMsg) {
@@ -1526,7 +1544,8 @@
         var btnQuickStart = document.getElementById('btnQuickStartAuto');
 
         if (isAutoRunning) {
-          // BẬT: bắt đầu đếm uptime từ bây giờ
+          // BẬT: bắt đầu đếm uptime
+          if (!startTime) startTime = Date.now();
           startUptimeTimer();
 
           if (lbl) {
@@ -1547,14 +1566,15 @@
           if (btnQuickStart) btnQuickStart.style.display = 'none';
 
           if (showToastMsg) {
-            showToast('🟢 ĐÃ BẬT AUTO! Máy đang tự động đánh quái trong game.');
-            appendTerminalLog('⚡ KÍCH HOẠT VÒNG LẶP AUTO ĐÁNH QUÁI 24/7', 'log-action');
+            showToast('🟢 ĐÃ BẬT AUTO! Máy đang tự động đánh quái trong game (Tắt web game vẫn tự cày 24/7).');
+            appendTerminalLog('⚡ KÍCH HOẠT VÒNG LẶP AUTO ĐÁNH QUÁI 24/7 (Chạy nền độc lập trên máy tính)', 'log-action');
           }
         } else {
           // TẮT: dừng đếm uptime, reset về 0
           stopUptimeTimer();
           totalActions = 0;
-          document.getElementById('metricActionsCount').textContent = '0 lần';
+          var elAct = document.getElementById('metricActionsCount');
+          if (elAct) elAct.textContent = '0 lần';
 
           if (lbl) {
             lbl.textContent = '⏸ TỰ ĐỘNG CHẠY GAME: ĐÃ TẮT';
@@ -1703,16 +1723,21 @@
       };
 
       // Toggle Master Auto
-      window.toggleMainAuto = function (val) {
-        if (val === undefined) {
+      window.toggleMainAuto = function (val, evt) {
+        if (evt && evt.target && evt.target.tagName === 'INPUT') {
+          if (val) window.startGameAuto();
+          else window.stopGameAuto();
+          return;
+        }
+        if (typeof val === 'boolean') {
+          if (val) window.startGameAuto();
+          else window.stopGameAuto();
+        } else {
           if (isAutoRunning) {
             window.stopGameAuto();
           } else {
             window.startGameAuto();
           }
-        } else {
-          if (val) window.startGameAuto();
-          else window.stopGameAuto();
         }
       };
 

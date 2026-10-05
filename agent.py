@@ -299,12 +299,78 @@ def launch_login_and_farm(config):
 def focus_game_window(target_title=None):
     if platform.system() == "Windows":
         title = target_title or game_auto_state['targetTitle'] or game_auto_state['targetGame']
-        ps_cmd = f"$wshell = New-Object -ComObject WScript.Shell; $wshell.AppActivate('{title}')"
+        ps_cmd = f"$wshell = New-Object -ComObject WScript.Shell; if ('{title}') {{ $wshell.AppActivate('{title}') }}"
         subprocess.Popen(["powershell", "-NoProfile", "-Command", ps_cmd])
+
+# Hỗ trợ gửi phím Win32 Native không cướp tiêu điểm trình duyệt Web
+_cached_game_hwnd = None
+def find_game_hwnd_win32(target_title=None):
+    global _cached_game_hwnd
+    if platform.system() != "Windows":
+        return None
+    try:
+        import ctypes
+        from ctypes import wintypes
+        user32 = ctypes.windll.user32
+        
+        # Kiểm tra hwnd đã cache còn hợp lệ không
+        if _cached_game_hwnd and user32.IsWindow(_cached_game_hwnd) and user32.IsWindowVisible(_cached_game_hwnd):
+            return _cached_game_hwnd
+
+        candidates = [target_title, game_auto_state.get('targetTitle'), game_auto_state.get('targetGame'), "HiepSiOnline_400", "HiepSiOnline", "Knight Age", "Knight", "HSO"]
+        candidates = [c.lower() for c in candidates if c]
+        
+        matched_hwnd = None
+        def enum_cb(hwnd, extra):
+            nonlocal matched_hwnd
+            if user32.IsWindowVisible(hwnd):
+                length = user32.GetWindowTextLengthW(hwnd)
+                if length > 0:
+                    buff = ctypes.create_unicode_buffer(length + 1)
+                    user32.GetWindowTextW(hwnd, buff, length + 1)
+                    t_low = buff.value.lower()
+                    for c in candidates:
+                        if c in t_low:
+                            matched_hwnd = hwnd
+                            return False
+            return True
+            
+        EnumWindowsProc = ctypes.WINFUNCTYPE(ctypes.c_bool, wintypes.HWND, wintypes.LPARAM)
+        user32.EnumWindows(EnumWindowsProc(enum_cb), 0)
+        if matched_hwnd:
+            _cached_game_hwnd = matched_hwnd
+        return matched_hwnd
+    except Exception:
+        return None
 
 def send_key_to_game(key):
     if platform.system() != "Windows" or not key:
         return
+    
+    # Cách 1: Gửi Win32 PostMessage trực tiếp vào HWND (0% CPU, chạy ngầm hoàn toàn không cướp Focus)
+    try:
+        import ctypes
+        user32 = ctypes.windll.user32
+        hwnd = find_game_hwnd_win32()
+        if hwnd:
+            vk = None
+            if key in ['{ENTER}', 'ENTER']:
+                vk = 0x0D
+            elif key == ' ':
+                vk = 0x20
+            elif len(key) == 1:
+                vk = ord(key.upper())
+            
+            if vk is not None:
+                user32.PostMessageW(hwnd, 0x0100, vk, 0) # WM_KEYDOWN
+                user32.PostMessageW(hwnd, 0x0102, vk if ord('0') <= vk <= ord('9') or vk == 0x20 else 0, 0) # WM_CHAR
+                time.sleep(0.02)
+                user32.PostMessageW(hwnd, 0x0101, vk, 0) # WM_KEYUP
+                return
+    except Exception:
+        pass
+
+    # Cách 2: Fallback qua script PowerShell send_keys.ps1
     target = game_auto_state['targetTitle'] or game_auto_state['targetGame']
     script_path = os.path.join(BASE_DIR, 'send_keys.ps1')
     if os.path.exists(script_path):

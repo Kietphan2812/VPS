@@ -14,7 +14,7 @@ const fs = require('fs');
 const path = require('path');
 const { spawn, exec } = require('child_process');
 
-const PORT = process.env.PORT || 80;
+const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.API_KEY || 'vps-secret-key-123';
 const DATA_DIR = path.join(__dirname, 'agent_data');
 const LOGS_DIR = path.join(DATA_DIR, 'logs');
