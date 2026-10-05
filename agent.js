@@ -14,7 +14,7 @@ const fs = require('fs');
 const path = require('path');
 const { spawn, exec } = require('child_process');
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 80;
 const API_KEY = process.env.API_KEY || 'vps-secret-key-123';
 const DATA_DIR = path.join(__dirname, 'agent_data');
 const LOGS_DIR = path.join(DATA_DIR, 'logs');
@@ -447,6 +447,31 @@ const server = http.createServer((req, res) => {
     });
   }
 
+  // Phục vụ giao diện Web (index.html)
+  if (pathname === '/' || pathname === '/index.html') {
+    const indexPath = path.join(__dirname, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      return fs.createReadStream(indexPath).pipe(res);
+    }
+  }
+  
+  if (pathname.endsWith('.html') || pathname.endsWith('.css') || pathname.endsWith('.js') || pathname.endsWith('.png') || pathname.endsWith('.jpg')) {
+    const filePath = path.join(__dirname, pathname);
+    if (fs.existsSync(filePath)) {
+      const ext = path.extname(filePath);
+      const mimeTypes = {
+        '.html': 'text/html; charset=utf-8',
+        '.css': 'text/css',
+        '.js': 'text/javascript',
+        '.png': 'image/png',
+        '.jpg': 'image/jpeg'
+      };
+      res.writeHead(200, { 'Content-Type': mimeTypes[ext] || 'text/plain' });
+      return fs.createReadStream(filePath).pipe(res);
+    }
+  }
+
   // Kiểm tra API Key (nếu có yêu cầu bảo mật)
   const reqKey = req.headers['x-api-key'] || parsedUrl.searchParams.get('key');
   const isPublicPing = pathname === '/api/ping';
@@ -454,7 +479,7 @@ const server = http.createServer((req, res) => {
   if (!isPublicPing && reqKey !== API_KEY) {
     // Có thể nới lỏng cho môi trường local
     const isLocal = req.socket.remoteAddress === '127.0.0.1' || req.socket.remoteAddress === '::1';
-    if (!isLocal) {
+    if (!isLocal && pathname.startsWith('/api')) {
       return jsonResponse({ error: 'Sai hoặc thiếu API Key! Hãy cung cấp header x-api-key' }, 401);
     }
   }

@@ -829,8 +829,8 @@
               
               <!-- Quick Preset Chips -->
               <div class="preset-chips">
-                <span class="preset-chip" onclick="setExePath('C:\\Users\\DELL\\Downloads\\HSO_v403B.exe', 'Knight Age PC (HSO)')">🗡️ C:\Users\DELL\Downloads\HSO_v403B.exe</span>
-                <span class="preset-chip" onclick="setExePath('C:\\KnightAge\\KnightAge.exe', 'Knight Age C:')">📁 C:\KnightAge\KnightAge.exe</span>
+                <span class="preset-chip" onclick="setExePath('C:\\Users\\Administrator\\Desktop\\VPS\\VPS\\HSO_v403B.exe', 'HiepSiOnline')">🗡️ HSO (HiepSiOnline)</span>
+                <span class="preset-chip" onclick="setExePath('C:\\Users\\DELL\\Downloads\\HSO_v403B.exe', 'Knight Age PC (HSO)')">🗡️ Knight Age PC</span>
               </div>
             </div>
 
@@ -1178,7 +1178,8 @@
 
   <script>
     (function () {
-      var AGENT_URL = localStorage.getItem('vps_agent_url') || 'http://localhost:3000';
+      var defaultUrl = (window.location.protocol === 'file:' || window.location.hostname.includes('render.com')) ? 'http://localhost:3000' : '';
+    var AGENT_URL = localStorage.getItem('vps_agent_url') || defaultUrl;
       var isAutoRunning = true;
       var activeSkills = ['1', '2'];
       var skillSpeedMs = 600;
