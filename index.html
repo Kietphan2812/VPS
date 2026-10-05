@@ -1041,7 +1041,7 @@
             <div class="process-metrics">
               <div class="metric-col">
                 <span>Trạng thái đánh</span>
-                <strong id="metricAutoState" style="color: #94a3b8;">ĐÃ TẮT (AN TOÀN VÀO GAME)</strong>
+                <strong id="metricAutoState" style="color: #34d399;">ĐANG AUTO ĐÁNH</strong>
               </div>
               <div class="metric-col">
                 <span>Số chiêu đã xuất</span>
@@ -1142,13 +1142,13 @@
           </div>
 
           <!-- BIG MASTER AUTO TOGGLE -->
-          <div class="master-switch-card" id="masterSwitchCard" onclick="toggleMainAuto(undefined, event)" style="border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.06);">
+          <div class="master-switch-card" id="masterSwitchCard" onclick="toggleMainAuto(undefined, event)" style="border-color: rgba(16, 185, 129, 0.6); background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(6, 182, 212, 0.12));">
             <div class="master-switch-text">
-              <strong id="lblMasterAuto" style="color: #f87171;">⏸ TỰ ĐỘNG CHẠY GAME: ĐÃ TẮT</strong>
-              <p>Chế độ an toàn: Không bấm phím vào game, bạn có thể tự do đăng nhập và chơi game</p>
+              <strong id="lblMasterAuto" style="color: #34d399;">⚡ TỰ ĐỘNG CHẠY GAME: ĐANG BẬT</strong>
+              <p id="subMasterAuto">Hệ thống luôn tự động cày 24/7. Chỉ tắt khi bạn chủ động bấm tắt trên web.</p>
             </div>
             <label class="switch" onclick="event.stopPropagation()">
-              <input type="checkbox" id="chkMasterAuto" onchange="toggleMainAuto(this.checked, event)">
+              <input type="checkbox" id="chkMasterAuto" checked onchange="toggleMainAuto(this.checked, event)">
               <span class="slider"></span>
             </label>
           </div>
@@ -1384,12 +1384,12 @@
     (function () {
       var defaultUrl = (window.location.protocol === 'file:' || window.location.hostname.includes('render.com')) ? 'http://localhost:3000' : '';
       var AGENT_URL = localStorage.getItem('vps_agent_url') || defaultUrl;
-      var isAutoRunning = false;
+      var isAutoRunning = (localStorage.getItem('vps_auto_state') !== 'off'); // Luôn BẬT mặc định trừ khi người dùng chủ động tắt
       var activeSkills = ['1', '2'];
       var skillSpeedMs = 600;
-      var totalActions = 0;          // Bắt đầu từ 0 - không giả lập
-      var startTime = null;          // null = chưa bật auto, sẽ set khi BẬT
-      var uptimeInterval = null;     // Timer đếm uptime - chỉ chạy khi auto BẬT
+      var totalActions = 0;          // Bắt đầu từ 0
+      var startTime = null;          // Sẽ set khi BẬT
+      var uptimeInterval = null;     // Timer đếm uptime
       var simTickInterval = null;    // Timer mô phỏng log
       var selectedGame = {
         name: 'Knight Age (HiepSiOnline_400)',
@@ -1503,8 +1503,12 @@
           }
         });
 
-        // Hiển thị trạng thái tắt ban đầu
-        updateUptime();
+        // Thiết lập trạng thái ban đầu theo cấu hình luôn bật
+        if (isAutoRunning) {
+          updateAutoUI(true, false);
+        } else {
+          updateAutoUI(false, false);
+        }
 
         // Render level/exp từ localStorage
         renderLevelExp();
@@ -1512,9 +1516,13 @@
 
         // Check connection to local Agent
         checkAgentConnection();
-        // Check real auto status from Agent (ngay lập tức)
+        // Check real auto status from Agent & tự động đồng bộ bật
         checkGameAutoStatus();
-        setTimeout(checkGameAutoStatus, 500);
+        setTimeout(function() {
+          if (localStorage.getItem('vps_auto_state') !== 'off') {
+            syncAutoWithAgent();
+          }
+        }, 1000);
       }
 
       function updateUptime() {
@@ -1755,14 +1763,23 @@
               updateAutoUI(true, false);
               updateGameProcessBadge(true);
             } else {
-              if (isAutoRunning) {
-                updateAutoUI(false, false);
-                updateGameProcessBadge(false);
+              // Nếu người dùng KHÔNG chủ động bấm tắt, tự động kích hoạt lại Auto
+              if (localStorage.getItem('vps_auto_state') !== 'off') {
+                updateAutoUI(true, false);
+                syncAutoWithAgent();
+              } else {
+                if (isAutoRunning) {
+                  updateAutoUI(false, false);
+                  updateGameProcessBadge(false);
+                }
               }
             }
           })
           .catch(function () {
-            // Không kết nối được Agent
+            // Khi mất mạng/mới mở web, nếu chưa bấm tắt thì vẫn giữ trạng thái BẬT
+            if (localStorage.getItem('vps_auto_state') !== 'off') {
+              updateAutoUI(true, false);
+            }
           });
       }
 
@@ -1776,6 +1793,7 @@
         if (chk) chk.checked = isAutoRunning;
 
         var lbl = document.getElementById('lblMasterAuto');
+        var subLbl = document.getElementById('subMasterAuto');
         var metric = document.getElementById('metricAutoState');
         var masterCard = document.getElementById('masterSwitchCard');
         var btnHeaderStop = document.getElementById('btnHeaderStopAuto');
@@ -1791,6 +1809,9 @@
           if (lbl) {
             lbl.textContent = '⚡ TỰ ĐỘNG CHẠY GAME: ĐANG BẬT';
             lbl.style.color = '#34d399';
+          }
+          if (subLbl) {
+            subLbl.textContent = 'Hệ thống luôn tự động cày 24/7. Chỉ tắt khi bạn chủ động bấm tắt trên web.';
           }
           if (metric) {
             metric.textContent = 'ĐANG AUTO ĐÁNH';
@@ -1820,6 +1841,9 @@
             lbl.textContent = '⏸ TỰ ĐỘNG CHẠY GAME: ĐÃ TẮT';
             lbl.style.color = '#f87171';
           }
+          if (subLbl) {
+            subLbl.textContent = 'Chế độ an toàn: Không bấm phím vào game, bạn có thể tự do đăng nhập và chơi game';
+          }
           if (metric) {
             metric.textContent = 'ĐÃ TẮT (AN TOÀN VÀO GAME)';
             metric.style.color = '#94a3b8';
@@ -1840,14 +1864,16 @@
         }
       }
 
-      // Nút tắt chạy tự động game (Dừng auto ngay lập tức)
+      // Nút tắt chạy tự động game (Chỉ khi người dùng bấm mới tắt)
       window.stopGameAuto = function () {
+        localStorage.setItem('vps_auto_state', 'off');
         updateAutoUI(false, true);
         fetch(AGENT_URL + '/api/game/auto/stop', { method: 'POST' }).catch(function () {});
       };
 
-      // Nút bật chạy tự động game
+      // Nút bật chạy tự động game (Luôn ghi nhớ trạng thái bật)
       window.startGameAuto = function () {
+        localStorage.setItem('vps_auto_state', 'on');
         updateAutoUI(true, true);
         syncAutoWithAgent();
       };
@@ -1860,6 +1886,7 @@
 
       // TẮT VÀ THOÁT GAME HOÀN TOÀN
       window.exitAndStopGameComplete = function () {
+        localStorage.setItem('vps_auto_state', 'off');
         updateAutoUI(false, false);
         showToast('🛑 Đang tắt auto và thoát game trên máy tính...');
         appendTerminalLog('🛑 [YÊU CẦU THOÁT GAME] Đang dừng auto và tắt cửa sổ game...', 'log-alert');
