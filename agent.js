@@ -735,6 +735,22 @@ const server = http.createServer((req, res) => {
     });
   }
 
+  // 23. Xem trực tiếp màn hình game (Screenshot)
+  if (pathname === '/api/screen' && req.method === 'GET') {
+    const captureScript = path.join(__dirname, 'capture.ps1');
+    const outImg = path.join(__dirname, 'screen_test.jpg');
+    
+    exec(`powershell -ExecutionPolicy Bypass -File "${captureScript}" "${outImg}"`, (err) => {
+      if (!err && fs.existsSync(outImg)) {
+        res.writeHead(200, { 'Content-Type': 'image/jpeg' });
+        fs.createReadStream(outImg).pipe(res);
+      } else {
+        jsonResponse({ error: 'Không thể chụp màn hình' }, 500);
+      }
+    });
+    return;
+  }
+
   jsonResponse({ error: 'Endpoint không tồn tại' }, 404);
 });
 

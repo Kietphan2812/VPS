@@ -884,6 +884,29 @@
             </div>
           </div>
 
+          <!-- Live Game Screen Stream -->
+          <div class="live-screen-box" style="margin-top: 15px; background: #07090e; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; position: relative;">
+            <div style="background: var(--bg-surface-elevated); padding: 8px 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;">
+              <span style="font-size: 13px; font-weight: 600; color: #38bdf8; display: flex; align-items: center; gap: 6px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
+                Màn Hình Trực Tiếp (Live Stream)
+              </span>
+              <div style="display: flex; gap: 6px;">
+                <button class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 11px;" onclick="refreshGameScreen()">🔄 Chụp Mới</button>
+                <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #94a3b8; cursor: pointer;">
+                  <input type="checkbox" id="chkAutoScreen" onchange="toggleAutoScreen()" style="width: auto;" checked /> Tự động (5s)
+                </label>
+              </div>
+            </div>
+            <div style="padding: 10px; display: flex; justify-content: center; align-items: center; min-height: 250px; background: #000;">
+              <img id="liveGameScreen" src="" style="max-width: 100%; max-height: 400px; border-radius: 4px; display: none;" alt="Live Game Screen" />
+              <div id="liveScreenLoader" style="color: #94a3b8; font-size: 13px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                <span class="dot-pulse"></span>
+                Đang chờ tải ảnh màn hình...
+              </div>
+            </div>
+          </div>
+
           <!-- Live Auto Actions Console Stream -->
           <div class="terminal-box">
             <div class="terminal-header">
@@ -1334,6 +1357,53 @@
           body: JSON.stringify({ title: selectedGame.title || selectedGame.name })
         }).catch(function () {});
       };
+
+      // Live Screen Logic
+      var screenTimer = null;
+      window.refreshGameScreen = function () {
+        var img = document.getElementById('liveGameScreen');
+        var loader = document.getElementById('liveScreenLoader');
+        
+        // Hide image, show loader initially if it's the first time
+        if (!img.src || img.src === window.location.href) {
+          img.style.display = 'none';
+          loader.style.display = 'flex';
+        }
+
+        var url = AGENT_URL + '/api/screen?t=' + Date.now();
+        
+        var tempImg = new Image();
+        tempImg.onload = function() {
+          img.src = url;
+          img.style.display = 'block';
+          loader.style.display = 'none';
+        };
+        tempImg.onerror = function() {
+          loader.innerHTML = '⚠️ Lỗi không chụp được màn hình. Vui lòng thử lại!';
+          loader.style.display = 'flex';
+          img.style.display = 'none';
+        };
+        tempImg.src = url;
+      };
+
+      window.toggleAutoScreen = function () {
+        var chk = document.getElementById('chkAutoScreen');
+        if (chk.checked) {
+          window.refreshGameScreen();
+          screenTimer = setInterval(window.refreshGameScreen, 5000);
+          showToast('📸 Đã bật tự động cập nhật màn hình game (5s/lần).');
+        } else {
+          if (screenTimer) clearInterval(screenTimer);
+          showToast('⏸ Đã tắt tự động cập nhật màn hình game.');
+        }
+      };
+
+      // Initial Screen Start
+      setTimeout(function() {
+        if (document.getElementById('chkAutoScreen').checked) {
+          window.toggleAutoScreen();
+        }
+      }, 3000);
 
       // Toggle Master Auto
       window.toggleMainAuto = function (val) {
