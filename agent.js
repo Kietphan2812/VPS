@@ -737,10 +737,11 @@ const server = http.createServer((req, res) => {
 
   // 23. Xem trực tiếp màn hình game (Screenshot)
   if (pathname === '/api/screen' && req.method === 'GET') {
+    const titleParam = parsedUrl.searchParams.get('title') || '';
     const captureScript = path.join(__dirname, 'capture.ps1');
     const outImg = path.join(__dirname, 'screen_test.jpg');
     
-    exec(`powershell -ExecutionPolicy Bypass -File "${captureScript}" "${outImg}"`, (err) => {
+    exec(`powershell -ExecutionPolicy Bypass -File "${captureScript}" -outFile "${outImg}" -windowTitle "${titleParam}"`, (err) => {
       if (!err && fs.existsSync(outImg)) {
         res.writeHead(200, { 'Content-Type': 'image/jpeg' });
         fs.createReadStream(outImg).pipe(res);

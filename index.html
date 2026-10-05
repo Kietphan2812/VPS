@@ -1370,7 +1370,8 @@
           loader.style.display = 'flex';
         }
 
-        var url = AGENT_URL + '/api/screen?t=' + Date.now();
+        var targetTitle = selectedGame.title || selectedGame.name || 'HiepSiOnline_400';
+        var url = AGENT_URL + '/api/screen?title=' + encodeURIComponent(targetTitle) + '&t=' + Date.now();
         
         var tempImg = new Image();
         tempImg.onload = function() {
