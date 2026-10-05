@@ -271,6 +271,46 @@ function killRealGame() {
   return { success: true, message: `Đã đóng game ${exeName}` };
 }
 
+// Tắt hoàn toàn: Dừng auto và thoát game luôn theo yêu cầu
+function stopAndExitGame() {
+  stopRealGameAuto();
+  killRealGame();
+  appendGameLog(`🛑 [HỆ THỐNG] ĐÃ DỪNG AUTO VÀ THOÁT GAME HOÀN TOÀN`);
+  return { success: true, message: 'Đã dừng auto và thoát game hoàn toàn' };
+}
+
+// Bật lại: Tự động khởi chạy game -> Đăng nhập -> Cày game
+function launchLoginAndFarm(config) {
+  const exePath = config.exePath || gameAutoState.exePath;
+  const launchRes = launchRealGame(exePath, config.targetGame);
+  if (!launchRes.success) {
+    return launchRes;
+  }
+
+  const delayMs = config.loginDelayMs || 4500;
+  appendGameLog(`⏳ Đang đợi game load (${delayMs / 1000}s) trước khi đăng nhập và cày...`);
+  
+  setTimeout(() => {
+    focusGameWindow(config.targetTitle || 'HiepSiOnline_400');
+
+    // Tự động nhấn "Chơi tiếp / Đăng nhập"
+    if (config.autoLogin !== false) {
+      appendGameLog(`🔑 [Tự Đăng Nhập] Đang bấm vào game (Chơi tiếp)...`);
+      sendKeyToGame('{ENTER}');
+      setTimeout(() => sendKeyToGame('5'), 1200);
+      setTimeout(() => sendKeyToGame('{ENTER}'), 2500);
+    }
+
+    // Bắt đầu vòng lặp cày game
+    setTimeout(() => {
+      startRealGameAuto(config);
+      appendGameLog(`⚡ [HỆ THỐNG] ĐÃ TỰ ĐỘNG BẬT CÀY GAME THÀNH CÔNG!`);
+    }, (config.autoLogin !== false) ? 3500 : 1000);
+  }, delayMs);
+
+  return { success: true, message: 'Đang mở game và tự động đăng nhập cày game...' };
+}
+
 // Đưa cửa sổ game lên trên màn hình (Focus)
 function focusGameWindow(targetTitle) {
   if (os.platform() === 'win32') {
@@ -775,6 +815,21 @@ const server = http.createServer((req, res) => {
   if (pathname === '/api/game/kill' && req.method === 'POST') {
     const result = killRealGame();
     return jsonResponse(result);
+  }
+
+  // 21c. Tắt và Thoát hẳn game hoàn toàn
+  if (pathname === '/api/game/system/exit' && req.method === 'POST') {
+    const result = stopAndExitGame();
+    return jsonResponse(result);
+  }
+
+  // 21d. Bật game và Tự động đăng nhập cày game
+  if (pathname === '/api/game/system/launch_farm' && req.method === 'POST') {
+    parseBody((err, body) => {
+      const result = launchLoginAndFarm(body || {});
+      return jsonResponse(result);
+    });
+    return;
   }
 
   // 22. Kiểm tra trạng thái Auto và lịch sử đánh

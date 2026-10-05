@@ -266,6 +266,36 @@ def kill_real_game():
     append_game_log(f"🛑 ĐÃ TẮT TIẾN TRÌNH GAME: {exe_name}")
     return {"success": True, "message": f"Đã đóng game {exe_name}"}
 
+def stop_and_exit_game():
+    stop_real_game_auto()
+    kill_real_game()
+    append_game_log("🛑 [HỆ THỐNG] ĐÃ DỪNG AUTO VÀ THOÁT GAME HOÀN TOÀN")
+    return {"success": True, "message": "Đã dừng auto và thoát game hoàn toàn"}
+
+def launch_login_and_farm(config):
+    exe_path = config.get('exePath') or game_auto_state['exePath']
+    launch_res = launch_real_game(exe_path, config.get('targetGame'))
+    if not launch_res.get('success'):
+        return launch_res
+
+    def run_delayed_login():
+        delay = (config.get('loginDelayMs') or 4500) / 1000.0
+        time.sleep(delay)
+        focus_game_window(config.get('targetTitle') or 'HiepSiOnline_400')
+        if config.get('autoLogin') is not False:
+            append_game_log("🔑 [Tự Đăng Nhập] Đang bấm vào game (Chơi tiếp)...")
+            send_key_to_game('{ENTER}')
+            time.sleep(1.2)
+            send_key_to_game('5')
+            time.sleep(2.5)
+            send_key_to_game('{ENTER}')
+        time.sleep(1.5)
+        start_real_game_auto(config)
+        append_game_log("⚡ [HỆ THỐNG] ĐÃ TỰ ĐỘNG BẬT CÀY GAME THÀNH CÔNG!")
+
+    threading.Thread(target=run_delayed_login, daemon=True).start()
+    return {"success": True, "message": "Đang mở game và tự động đăng nhập cày game..."}
+
 def focus_game_window(target_title=None):
     if platform.system() == "Windows":
         title = target_title or game_auto_state['targetTitle'] or game_auto_state['targetGame']
@@ -654,6 +684,16 @@ class RequestHandler(BaseHTTPRequestHandler):
 
         if path == '/api/game/kill':
             res = kill_real_game()
+            self.send_json(res)
+            return
+
+        if path == '/api/game/system/exit':
+            res = stop_and_exit_game()
+            self.send_json(res)
+            return
+
+        if path == '/api/game/system/launch_farm':
+            res = launch_login_and_farm(body)
             self.send_json(res)
             return
 

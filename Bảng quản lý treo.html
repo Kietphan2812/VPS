@@ -757,11 +757,11 @@
           <span class="dot-pulse"></span>
           <span id="agentBadgeText">AGENT SẴN SÀNG KẾT NỐI</span>
         </div>
-        <button id="btnHeaderStopAuto" class="btn btn-danger-solid btn-sm" onclick="stopGameAuto()" style="display: none; align-items: center; gap: 6px;">
-          🛑 TẮT CHẠY TỰ ĐỘNG
+        <button id="btnHeaderStopAuto" class="btn btn-danger-solid btn-sm" onclick="exitAndStopGameComplete()" style="display: none; align-items: center; gap: 6px;">
+          🛑 TẮT & THOÁT GAME LUÔN
         </button>
-        <button id="btnHeaderStartAuto" class="btn btn-success btn-sm" onclick="startGameAuto()" style="display: flex; align-items: center; gap: 6px;">
-          ⚡ BẬT AUTO ĐÁNH
+        <button id="btnHeaderStartAuto" class="btn btn-success btn-sm" onclick="launchLoginAndFarmGame()" style="display: flex; align-items: center; gap: 6px;">
+          🚀 BẬT GAME & TỰ ĐĂNG NHẬP CÀY
         </button>
         <button class="btn btn-primary btn-sm" onclick="openDownloadModal()" style="background: linear-gradient(135deg, #10b981, #059669); border: none; font-weight: 700; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); display: flex; align-items: center; gap: 6px;">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -854,33 +854,42 @@
               </div>
             </div>
 
-            <!-- Launch & Connect Buttons -->
-            <div class="launch-row">
-              <button class="btn btn-primary" onclick="launchGameOnPC()" style="flex: 1.2;">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                Khởi Chạy Game Knight Age
-              </button>
-              <button class="btn btn-secondary" onclick="focusCurrentGame()">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
-                Hiện Cửa Sổ Game
-              </button>
+            <!-- BỘ ĐIỀU KHIỂN THÔNG MINH: TỰ THOÁT GAME HOÀN TOÀN & TỰ ĐĂNG NHẬP CÀY -->
+            <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-bright); border-radius: var(--radius-md); padding: 14px; margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: 700; font-size: 13px; color: #38bdf8;">🎮 BỘ ĐIỀU KHIỂN CHÍNH (THOÁT GAME & TỰ CÀY)</span>
+                <span id="badgeGameRunningStatus" style="font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4);">
+                  ● GAME ĐÃ THOÁT - ĐANG TẮT
+                </span>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button class="btn btn-danger-solid" id="btnMasterExitGame" onclick="exitAndStopGameComplete()" style="padding: 12px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+                  🛑 TẮT & THOÁT GAME LUÔN
+                </button>
+                <button class="btn btn-success" id="btnMasterLaunchFarm" onclick="launchLoginAndFarmGame()" style="padding: 12px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                  🚀 BẬT GAME & TỰ CÀY
+                </button>
+              </div>
+              <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--text-dim); padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.06); flex-wrap: wrap; gap: 6px;">
+                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #94a3b8;">
+                  <input type="checkbox" id="chkAutoLoginOnLaunch" checked style="width: auto;"> Tự động bấm "Chơi tiếp / Đăng nhập" khi mở game
+                </label>
+                <span style="color: #34d399;">✓ Giải phóng RAM/CPU khi tắt</span>
+              </div>
             </div>
 
-            <!-- Quick Auto Control Buttons (Dành cho việc vào game không bị out) -->
-            <div style="display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap;">
-              <button class="btn btn-danger-solid" id="btnQuickStopAuto" onclick="stopGameAuto()" style="flex: 1.8; display: none; align-items: center; justify-content: center; gap: 6px; padding: 10px 14px;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
-                🛑 TẮT CHẠY TỰ ĐỘNG (ĐỂ VÀO GAME)
+            <!-- Các nút điều khiển thủ công phụ -->
+            <div style="display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap;">
+              <button class="btn btn-secondary btn-sm" onclick="launchGameOnPC()" style="flex: 1;">
+                🚀 Mở Game Riêng
               </button>
-              <button class="btn btn-success" id="btnQuickStartAuto" onclick="startGameAuto()" style="flex: 1.8; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 14px;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                ⚡ BẬT AUTO ĐÁNH QUÁI
+              <button class="btn btn-secondary btn-sm" onclick="focusCurrentGame()" style="flex: 1;">
+                🎯 Hiện Cửa Sổ Game
               </button>
-              <button class="btn btn-secondary" onclick="pauseAutoToLogin()" style="flex: 1.2; padding: 10px 12px; font-size: 12px;" title="Tạm dừng auto để nhập tài khoản và chọn nhân vật an toàn">
+              <button class="btn btn-secondary btn-sm" onclick="pauseAutoToLogin()" style="flex: 1.2;" title="Tạm dừng auto để nhập tài khoản và chọn nhân vật an toàn">
                 ⏸️ Tạm Dừng Đăng Nhập
-              </button>
-              <button class="btn btn-secondary" onclick="killGameOnPC()" style="background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.35); color: #fca5a5;" title="Đóng hoàn toàn game nếu bị đơ hoặc lỗi">
-                ❌ Đóng Game
               </button>
             </div>
 
@@ -983,15 +992,15 @@
             <span style="font-size: 11px; color: #a5b4fc;">Auto-Attack 24/7</span>
           </div>
 
-          <!-- BIG ACTION BUTTONS: TẮT & BẬT AUTO ĐÁNH -->
+          <!-- BIG ACTION BUTTONS: TẮT & THOÁT / BẬT & CÀY GAME -->
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 6px;">
-            <button class="btn btn-danger-solid" id="btnSideStopAuto" onclick="stopGameAuto()" style="padding: 12px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <button class="btn btn-danger-solid" id="btnSideStopAuto" onclick="exitAndStopGameComplete()" style="padding: 12px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
-              🛑 TẮT TỰ ĐỘNG
+              🛑 TẮT & THOÁT GAME
             </button>
-            <button class="btn btn-success" id="btnSideStartAuto" onclick="startGameAuto()" style="padding: 12px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <button class="btn btn-success" id="btnSideStartAuto" onclick="launchLoginAndFarmGame()" style="padding: 12px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-              ⚡ BẬT AUTO
+              🚀 BẬT GAME & CÀY
             </button>
           </div>
 
@@ -1562,6 +1571,91 @@
         showToast('🛡️ ĐÃ TẮT TỰ ĐỘNG! Hãy đăng nhập, chọn nhân vật và vào bãi quái an toàn nhé.');
       };
 
+      // TẮT VÀ THOÁT GAME HOÀN TOÀN
+      window.exitAndStopGameComplete = function () {
+        updateAutoUI(false, false);
+        showToast('🛑 Đang tắt auto và thoát game trên máy tính...');
+        appendTerminalLog('🛑 [YÊU CẦU THOÁT GAME] Đang dừng auto và tắt cửa sổ game...', 'log-alert');
+
+        fetch(AGENT_URL + '/api/game/system/exit', { method: 'POST' })
+          .then(function (r) { return r.json(); })
+          .then(function (res) {
+            showToast('✅ Đã tắt tự động và thoát hoàn toàn cửa sổ game!');
+            appendTerminalLog('⏹ ĐÃ THOÁT GAME HOÀN TOÀN. Máy tính đã giải phóng RAM/CPU!', 'log-alert');
+            updateGameProcessBadge(false);
+          })
+          .catch(function () {
+            fetch(AGENT_URL + '/api/game/kill', { method: 'POST' }).catch(function () {});
+            fetch(AGENT_URL + '/api/game/auto/stop', { method: 'POST' }).catch(function () {});
+            showToast('✅ Đã gửi lệnh thoát game và tắt auto.');
+            updateGameProcessBadge(false);
+          });
+      };
+
+      // BẬT LẠI: TỰ ĐỘNG KHỞI ĐỘNG GAME -> ĐĂNG NHẬP -> CÀY QUÁI
+      window.launchLoginAndFarmGame = function () {
+        var exe = document.getElementById('inputExePath').value.trim();
+        if (!exe) {
+          alert('Vui lòng chọn hoặc nhập đường dẫn file game .exe!');
+          return;
+        }
+
+        var autoLogin = document.getElementById('chkAutoLoginOnLaunch') ? document.getElementById('chkAutoLoginOnLaunch').checked : true;
+        showToast('🚀 Đang mở game và kích hoạt tự động cày 24/7...');
+        appendTerminalLog('🚀 [MỞ GAME & AUTO CÀY] Đang khởi chạy file: ' + exe, 'log-action');
+
+        fetch(AGENT_URL + '/api/game/system/launch_farm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            exePath: exe,
+            targetGame: selectedGame.name,
+            targetTitle: selectedGame.title,
+            autoLogin: autoLogin,
+            loginDelayMs: 4500,
+            skills: activeSkills,
+            skillIntervalMs: skillSpeedMs,
+            usePotion: document.getElementById('chkAutoPotion').checked,
+            potionKey: '3',
+            useLoot: document.getElementById('chkAutoLoot').checked
+          })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res.success) {
+            updateAutoUI(true, false);
+            updateGameProcessBadge(true);
+            showToast('🎉 ĐÃ MỞ GAME & TỰ ĐỘNG CÀY! (Sẽ tự đăng nhập sau 4 giây)');
+            appendTerminalLog('🔑 Đang tự động bấm vào game (Chơi tiếp / Đăng nhập) và bắt đầu tung chiêu...', 'log-potion');
+          } else {
+            showToast('⚠️ Ghi chú: ' + res.message);
+          }
+        })
+        .catch(function () {
+          window.launchGameOnPC();
+          setTimeout(function () {
+            window.startGameAuto();
+          }, 4500);
+          updateGameProcessBadge(true);
+        });
+      };
+
+      function updateGameProcessBadge(running) {
+        var b = document.getElementById('badgeGameRunningStatus');
+        if (!b) return;
+        if (running) {
+          b.textContent = '● GAME ĐANG CHẠY & AUTO';
+          b.style.background = 'rgba(16, 185, 129, 0.2)';
+          b.style.color = '#34d399';
+          b.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+        } else {
+          b.textContent = '● GAME ĐÃ THOÁT - ĐANG TẮT';
+          b.style.background = 'rgba(239, 68, 68, 0.2)';
+          b.style.color = '#f87171';
+          b.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+        }
+      }
+
       // Đóng hoàn toàn tiến trình Game trên máy tính
       window.killGameOnPC = function () {
         if (!confirm('Bạn có chắc muốn đóng/tắt hoàn toàn cửa sổ game Knight Age không?')) return;
@@ -1573,9 +1667,11 @@
           .then(function (res) {
             showToast('✅ Đã tắt cửa sổ game.');
             appendTerminalLog('✅ ' + (res.message || 'Game đã được đóng.'));
+            updateGameProcessBadge(false);
           })
           .catch(function () {
             showToast('⚠️ Đã gửi lệnh tắt game.');
+            updateGameProcessBadge(false);
           });
       };
 
