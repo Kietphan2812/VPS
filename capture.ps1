@@ -10,13 +10,23 @@ $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
 if ($windowTitle -ne "") {
     $code = @"
 using System;
+using System.Text;
 using System.Runtime.InteropServices;
+using System.Drawing;
+
 public class Win32 {
+    public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
     [DllImport("user32.dll")]
-    public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+    public static extern bool EnumWindows(EnumWindowsProc enumProc, IntPtr lParam);
+
+    [DllImport("user32.dll", CharSet = CharSet.Auto)]
+    public static extern int GetWindowText(IntPtr hWnd, StringBuilder strText, int maxCount);
+
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+
     [StructLayout(LayoutKind.Sequential)]
     public struct RECT {
         public int Left;
@@ -24,13 +34,28 @@ public class Win32 {
         public int Right;
         public int Bottom;
     }
+
+    public static IntPtr FindWindowBySubstring(string substring) {
+        IntPtr found = IntPtr.Zero;
+        EnumWindows(delegate(IntPtr wnd, IntPtr param) {
+            StringBuilder title = new StringBuilder(256);
+            if (GetWindowText(wnd, title, 256) > 0) {
+                if (title.ToString().ToLower().Contains(substring.ToLower())) {
+                    found = wnd;
+                    return false; // Stop enumerating
+                }
+            }
+            return true;
+        }, IntPtr.Zero);
+        return found;
+    }
 }
 "@
     try {
         Add-Type -TypeDefinition $code -Language CSharp -ErrorAction SilentlyContinue
     } catch {}
 
-    $hwnd = [Win32]::FindWindow($null, $windowTitle)
+    $hwnd = [Win32]::FindWindowBySubstring($windowTitle)
     if ($hwnd -ne [IntPtr]::Zero) {
         $rect = New-Object Win32+RECT
         if ([Win32]::GetWindowRect($hwnd, [ref]$rect)) {
